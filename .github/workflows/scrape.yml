@@ -2,8 +2,19 @@ name: Scrape & Deploy
 
 on:
   schedule:
+    # Every 4 hours at minute 0 (UTC).
     - cron: '0 */4 * * *'
   workflow_dispatch:
+    inputs:
+      deep_scrape:
+        description: 'Walk every paginated page (slow; use sparingly)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto       # deep if archive is empty, else incremental (default)
+          - yes        # force full deep walk
+          - no         # force incremental even on empty archive
   push:
     branches: [main]
     paths:
@@ -39,6 +50,9 @@ jobs:
         run: pip install -r scraper/requirements.txt
 
       - name: Run scraper
+        env:
+          # On manual dispatch: use the chosen mode. On schedule/push: 'auto'.
+          DEEP_SCRAPE: ${{ github.event.inputs.deep_scrape || 'auto' }}
         run: python scraper/scrape.py
 
       - name: Commit updated data

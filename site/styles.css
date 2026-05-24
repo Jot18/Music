@@ -694,3 +694,48 @@ main {
   text-transform: uppercase;
   color: var(--ink-faint);
 }
+
+/* ============================================================ Archive */
+
+.archive-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.archive-search {
+  flex: 1;
+  min-width: 240px;
+  background: var(--bg-2);
+  color: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color .2s ease;
+}
+.archive-search:focus {
+  border-color: var(--marigold);
+  box-shadow: 0 0 0 3px rgba(240,179,35,.12);
+}
+.archive-search::placeholder { color: var(--ink-faint); }
+
+.archive-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0;
+}
+
+.archive-more {
+  grid-column: 1 / -1;
+  margin: 20px auto 0;
+  justify-self: center;
+}

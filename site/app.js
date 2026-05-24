@@ -63,7 +63,7 @@ function renderSection(section) {
     case "new_singles":  titleHtml = `New <em>Singles</em>`; break;
     case "new_albums":   titleHtml = `New <em>Albums</em> &amp; EPs`; break;
     case "top_singles":  titleHtml = `Top 50 <em>Singles</em>`; break;
-    case "top_albums":   titleHtml = `Top 50 <em>Albums</em>`; break;
+    case "top_albums":   titleHtml = `Top 50 <em>Chart</em>`; break;
     default:             titleHtml = section.title;
   }
 
@@ -80,42 +80,7 @@ function renderSection(section) {
   }
 
   section.items.forEach((item, idx) => {
-    const cover = safeUrl(item.cover) || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><rect width='1' height='1' fill='%23251608'/></svg>";
-
-    const coverWrap = el("div", { class: "card__cover-wrap" },
-      isChart ? el("span", { class: "card__rank" }, String(idx + 1)) : null,
-      isAlbum ? el("span", { class: "card__badge" }, "Album") : null,
-      el("img", {
-        class: "card__cover",
-        src: cover,
-        alt: `${item.title} cover`,
-        loading: "lazy",
-        onerror: function () { this.style.opacity = ".15"; }
-      }),
-      el("button", {
-        class: "card__play",
-        "aria-label": `Play ${item.title}`,
-        onclick: (e) => {
-          e.stopPropagation();
-          playItem(item);
-        },
-        html: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
-      })
-    );
-
-    const card = el("button", {
-      class: "card",
-      type: "button",
-      onclick: () => openSheet(item),
-    },
-      coverWrap,
-      el("div", { class: "card__meta" },
-        el("h3", { class: "card__title" }, item.title || "Untitled"),
-        el("p", { class: "card__artist" }, item.artist || (isAlbum ? "Various Artists" : "Unknown"))
-      )
-    );
-
-    grid.append(card);
+    grid.append(buildCard(item, isChart, idx));
   });
 
   return el("section", { class: "section", id: section.id }, head, grid);
@@ -129,23 +94,139 @@ function renderAll(data) {
     const d = new Date(data.generated_at);
     if (!isNaN(d.getTime())) {
       const opts = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
-      $("#lastUpdated").textContent = `updated ${d.toLocaleString(undefined, opts)}`;
+      const archiveSize = data.stats?.archive_size ?? 0;
+      $("#lastUpdated").textContent =
+        `updated ${d.toLocaleString(undefined, opts)} · archive: ${archiveSize}`;
     }
   }
 
-  // Build flat playlist (used for prev/next).
+  // Build flat playlist (used for prev/next) from sections AND archive.
+  const seen = new Set();
   STATE.playlist = [];
-  for (const section of data.sections) {
-    for (const item of section.items) {
-      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
-        STATE.playlist.push(item);
-      }
+  const allPools = [
+    ...(data.sections || []).flatMap(s => s.items || []),
+    ...(data.archive || []),
+  ];
+  for (const item of allPools) {
+    const k = `${item.kind}:${item.id}`;
+    if (seen.has(k)) continue;
+    seen.add(k);
+    if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
+      STATE.playlist.push(item);
     }
   }
 
   for (const section of data.sections) {
     app.append(renderSection(section));
   }
+
+  // Archive section — the accumulated history view.
+  if (Array.isArray(data.archive) && data.archive.length > 0) {
+    app.append(renderArchive(data.archive));
+  }
+}
+
+function renderArchive(archive) {
+  const wrap = el("section", { class: "section", id: "archive" });
+  const head = el("div", { class: "section__head" },
+    el("h2", { class: "section__title", html: `Full <em>Archive</em>` }),
+    el("span", { class: "section__count" }, `${archive.length} tracks · all-time`)
+  );
+  wrap.append(head);
+
+  // Search bar
+  const search = el("input", {
+    type: "search",
+    class: "archive-search",
+    placeholder: "Search archive — title, artist, label, music…",
+    "aria-label": "Search archive",
+  });
+  const status = el("p", { class: "archive-status" }, "");
+  wrap.append(el("div", { class: "archive-controls" }, search, status));
+
+  const grid = el("div", { class: "grid" });
+  wrap.append(grid);
+
+  // Limit initial render for performance; show more on demand.
+  const PAGE = 60;
+  let shown = PAGE;
+  let filtered = archive;
+
+  function renderGrid() {
+    grid.innerHTML = "";
+    const slice = filtered.slice(0, shown);
+    for (const item of slice) {
+      grid.append(buildCard(item, false, null));
+    }
+    status.textContent = filtered.length === archive.length
+      ? `Showing ${slice.length} of ${archive.length}`
+      : `${filtered.length} match · showing ${slice.length}`;
+
+    if (shown < filtered.length) {
+      const more = el("button", {
+        class: "btn btn--ghost archive-more",
+        type: "button",
+        onclick: () => { shown += PAGE; renderGrid(); },
+      }, `Load ${Math.min(PAGE, filtered.length - shown)} more`);
+      grid.append(more);
+    }
+  }
+
+  search.addEventListener("input", () => {
+    const q = search.value.trim().toLowerCase();
+    if (!q) {
+      filtered = archive;
+    } else {
+      filtered = archive.filter(it => {
+        const hay = [
+          it.title, it.artist, it.music, it.lyrics, it.label, it.released
+        ].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+    }
+    shown = PAGE;
+    renderGrid();
+  });
+
+  renderGrid();
+  return wrap;
+}
+
+// Extracted from renderSection so it can be reused by the archive.
+function buildCard(item, isChart, idx) {
+  const cover = safeUrl(item.cover) ||
+    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><rect width='1' height='1' fill='%23251608'/></svg>";
+  const isAlbum = item.kind === "album";
+
+  const coverWrap = el("div", { class: "card__cover-wrap" },
+    isChart ? el("span", { class: "card__rank" }, String(idx + 1)) : null,
+    isAlbum ? el("span", { class: "card__badge" }, "Album") : null,
+    el("img", {
+      class: "card__cover",
+      src: cover,
+      alt: `${item.title} cover`,
+      loading: "lazy",
+      onerror: function () { this.style.opacity = ".15"; }
+    }),
+    el("button", {
+      class: "card__play",
+      "aria-label": `Play ${item.title}`,
+      onclick: (e) => { e.stopPropagation(); playItem(item); },
+      html: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
+    })
+  );
+
+  return el("button", {
+    class: "card",
+    type: "button",
+    onclick: () => openSheet(item),
+  },
+    coverWrap,
+    el("div", { class: "card__meta" },
+      el("h3", { class: "card__title" }, item.title || "Untitled"),
+      el("p", { class: "card__artist" }, item.artist || (isAlbum ? "Various Artists" : "Unknown"))
+    )
+  );
 }
 
 // ------- Detail sheet -----------------------------------------------------
