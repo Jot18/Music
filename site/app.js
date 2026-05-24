@@ -1,16 +1,86 @@
 /* ============================================================
-   Saadi Awaaz · App logic v6
+   Saadi Awaaz · App logic v7
    ============================================================ */
 
-const STATE = {
-  sections: [],
-  playlist: [],
-  currentIndex: -1,
-  currentItem: null,
-  // Lazy-loaded search index. Loaded on first focus of the search box.
-  searchIndex: null,
-  searchLoading: false,
-};
+// ---------------- Auth (simple password gate) -------------------------------
+// To set the password: pick one, hash it with SHA-256, paste the hex digest
+// into ACCESS_HASH. Anyone with the deployed site source can read this hash
+// — that's expected. This gate keeps casual visitors out, not motivated ones.
+//
+// Quick way to generate a hash in your browser console:
+//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('YOUR_PASSWORD'))
+//     .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+
+// Default = sha256("saadi") — change this BEFORE deploying.
+const ACCESS_HASH = "13d3caae1e51084f3deafb8a44c2f39ed52cca586e6f9a16288cf7304019efd1";
+
+const AUTH_KEY = "sa_auth_v1";
+
+async function sha256Hex(s) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+
+async function isAuthenticated() {
+  const stored = localStorage.getItem(AUTH_KEY);
+  return stored === ACCESS_HASH;
+}
+
+function showGate(show) {
+  const gate = document.getElementById("loginGate");
+  if (!gate) return;
+  gate.classList.toggle("is-hidden", !show);
+  // Prevent scroll behind the gate.
+  document.body.style.overflow = show ? "hidden" : "";
+}
+
+async function tryLogin(password) {
+  const h = await sha256Hex(password || "");
+  if (h === ACCESS_HASH) {
+    localStorage.setItem(AUTH_KEY, h);
+    return true;
+  }
+  return false;
+}
+
+function logout() {
+  localStorage.removeItem(AUTH_KEY);
+  // Pause anything playing first.
+  try { document.getElementById("audio").pause(); } catch {}
+  location.reload();
+}
+
+// Wire up the login form.
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = document.getElementById("loginInput");
+  const err   = document.getElementById("loginError");
+  const ok = await tryLogin(input.value);
+  if (ok) {
+    err.hidden = true;
+    showGate(false);
+    boot();
+  } else {
+    err.hidden = false;
+    input.value = "";
+    input.focus();
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  if (confirm("Log out of Saadi Awaaz?")) logout();
+});
+
+// On load, decide whether to show the gate or boot the app.
+(async () => {
+  if (await isAuthenticated()) {
+    showGate(false);
+    boot();
+  } else {
+    showGate(true);
+    setTimeout(() => document.getElementById("loginInput").focus(), 100);
+  }
+})();
 
 // ---------------- Touch detection -------------------------------------------
 
@@ -25,6 +95,15 @@ if (isTouchDevice()) {
 }
 
 // ---------------- Helpers ---------------------------------------------------
+
+const STATE = {
+  sections: [],
+  playlist: [],
+  currentIndex: -1,
+  currentItem: null,
+  searchIndex: null,
+  searchLoading: false,
+};
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
@@ -75,13 +154,19 @@ function debounce(fn, ms) {
   return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); };
 }
 
-// In-memory cache of fully-detailed items keyed by `${kind}:${id}`.
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+// ---------------- Item cache ------------------------------------------------
+
 const ITEM_CACHE = new Map();
 
 async function loadItemDetail(kind, id) {
   const key = `${kind}:${id}`;
   if (ITEM_CACHE.has(key)) return ITEM_CACHE.get(key);
-
   try {
     const res = await fetch(`data/items/${kind}-${id}.json`, { cache: "force-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -94,11 +179,18 @@ async function loadItemDetail(kind, id) {
   }
 }
 
-// ---------------- Rendering ------------------------------------------------
+async function ensureFullItem(item) {
+  if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
+    return item;
+  }
+  const detail = await loadItemDetail(item.kind, item.id);
+  return detail || item;
+}
+
+// ---------------- Rendering -------------------------------------------------
 
 function renderSection(section) {
   const isChart = section.id.startsWith("top_");
-  const isAlbum = section.kind === "album";
 
   let titleHtml;
   switch (section.id) {
@@ -108,19 +200,23 @@ function renderSection(section) {
     default:             titleHtml = section.title;
   }
 
+  const showing = section.items.length;
+  const total = section.total_available ?? showing;
+  let countText;
+  if (total > showing) {
+    countText = `${showing} shown · ${total.toLocaleString()} in library · search for more`;
+  } else {
+    countText = `${showing} ${section.kind === "album" ? "releases" : "tracks"}`;
+  }
   const head = el("div", { class: "section__head" },
     el("h2", { class: "section__title", html: titleHtml }),
-    el("span", { class: "section__count" },
-       `${section.items.length} ${isAlbum ? "releases" : "tracks"}`)
+    el("span", { class: "section__count" }, countText)
   );
 
   const grid = el("div", { class: "grid" });
-
   if (section.items.length === 0) {
-    grid.append(el("div", { class: "empty" },
-      "Waiting for the next scrape…"));
+    grid.append(el("div", { class: "empty" }, "Waiting for next scrape…"));
   }
-
   section.items.forEach((item, idx) => {
     grid.append(buildCard(item, isChart, idx));
   });
@@ -133,6 +229,26 @@ function buildCard(item, isChart, idx) {
     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><rect width='1' height='1' fill='%23251608'/></svg>";
   const isAlbum = item.kind === "album";
 
+  // Build the cover area. Albums get a different play button — it opens the
+  // tracklist instead of trying to play the album (album pages have no audio).
+  const playBtn = el("button", {
+    class: "card__play",
+    "aria-label": isAlbum ? `Open ${item.title}` : `Play ${item.title}`,
+    onclick: async (e) => {
+      e.stopPropagation();
+      if (isAlbum) {
+        // Open the album sheet so the user can pick a track.
+        openSheet(item);
+      } else {
+        const full = await ensureFullItem(item);
+        if (full) playItem(full);
+      }
+    },
+    html: isAlbum
+      ? `<svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z" fill="currentColor"/></svg>`
+      : `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`,
+  });
+
   const coverWrap = el("div", { class: "card__cover-wrap" },
     isChart ? el("span", { class: "card__rank" }, String(idx + 1)) : null,
     isAlbum ? el("span", { class: "card__badge" }, "Album") : null,
@@ -143,17 +259,7 @@ function buildCard(item, isChart, idx) {
       loading: "lazy",
       onerror: function () { this.style.opacity = ".15"; }
     }),
-    el("button", {
-      class: "card__play",
-      "aria-label": `Play ${item.title}`,
-      onclick: async (e) => {
-        e.stopPropagation();
-        // Need the full item record to play (need mp3 URLs).
-        const full = await ensureFullItem(item);
-        if (full) playItem(full);
-      },
-      html: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
-    })
+    playBtn,
   );
 
   return el("button", {
@@ -167,20 +273,6 @@ function buildCard(item, isChart, idx) {
       el("p", { class: "card__artist" }, item.artist || (isAlbum ? "Various Artists" : "Unknown"))
     )
   );
-}
-
-/**
- * Make sure we have a full item (with mp3 URLs, music director, lyrics, etc).
- * Items from the live feeds already have everything. Items from search may be
- * the slim version — those get hydrated on demand from /data/items/{k}-{id}.json.
- */
-async function ensureFullItem(item) {
-  // If it has mp3 stream URLs, it's already full.
-  if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
-    return item;
-  }
-  const detail = await loadItemDetail(item.kind, item.id);
-  return detail || item;
 }
 
 function renderAll(data) {
@@ -199,7 +291,6 @@ function renderAll(data) {
 
   STATE.sections = data.sections || [];
 
-  // Build flat playlist from the live feeds for prev/next.
   const seen = new Set();
   STATE.playlist = [];
   for (const section of STATE.sections) {
@@ -207,43 +298,42 @@ function renderAll(data) {
       const k = `${item.kind}:${item.id}`;
       if (seen.has(k)) continue;
       seen.add(k);
-      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
+      ITEM_CACHE.set(k, item);
+      // Only singles can be auto-played; albums need a track pick.
+      if (item.kind === "single" &&
+          item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
         STATE.playlist.push(item);
-        ITEM_CACHE.set(k, item);   // cache the full record
       }
     }
   }
 
-  // Make sure the search-results container exists even before search runs.
   app.append(el("section", { class: "section", id: "searchResults", hidden: "" }));
-
-  for (const section of STATE.sections) {
-    app.append(renderSection(section));
-  }
+  for (const section of STATE.sections) app.append(renderSection(section));
 }
 
 // ---------------- Detail sheet ---------------------------------------------
 
 async function openSheet(item) {
-  // Prefill with whatever the card already has (so the sheet opens instantly),
-  // then hydrate from data/items/{kind}-{id}.json if needed.
   fillSheet(item);
   $("#detailSheet").showModal();
 
-  if (!item.mp3 || !(item.mp3.stream || item.mp3.kbps128)) {
+  // For albums, ALWAYS hydrate from item file (we need the track list).
+  // For singles, hydrate only if mp3 URLs are missing.
+  const needHydrate = item.kind === "album" ||
+                      !item.mp3 || !(item.mp3.stream || item.mp3.kbps128);
+  if (needHydrate) {
     const full = await loadItemDetail(item.kind, item.id);
-    if (full && $("#detailSheet").open) {
-      fillSheet(full);
-    }
+    if (full && $("#detailSheet").open) fillSheet(full);
   }
 }
 
 function fillSheet(item) {
+  const isAlbum = item.kind === "album";
   $("#sheetCover").src = safeUrl(item.cover) || "";
   $("#sheetCover").alt = `${item.title} cover`;
-  $("#sheetKicker").textContent = item.kind === "album" ? "Album / EP" : "Single Track";
+  $("#sheetKicker").textContent = isAlbum ? "Album / EP" : "Single Track";
   $("#sheetTitle").textContent = item.title || "Untitled";
-  $("#sheetArtist").textContent = item.artist || (item.kind === "album" ? "Various Artists" : "—");
+  $("#sheetArtist").textContent = item.artist || (isAlbum ? "Various Artists" : "—");
 
   const facts = $("#sheetFacts");
   facts.innerHTML = "";
@@ -260,15 +350,29 @@ function fillSheet(item) {
     facts.append(el("dd", {}, safeText(v)));
   }
 
-  $("#sheetPlayBtn").onclick = async () => {
-    const full = await ensureFullItem(item);
-    if (full) playItem(full);
-    closeSheet();
-  };
-  const hasStream = item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48);
-  $("#sheetPlayBtn").disabled = !hasStream;
-  $("#sheetPlayBtn").style.opacity = hasStream ? "1" : ".4";
+  const playBtn = $("#sheetPlayBtn");
+  const tracksHost = $("#sheetTracks");
 
+  if (isAlbum) {
+    // Albums: hide the Play button, show track list (if we have it).
+    playBtn.style.display = "none";
+    renderAlbumTracks(item, tracksHost);
+  } else {
+    // Singles: show Play button, no track list.
+    playBtn.style.display = "";
+    playBtn.onclick = async () => {
+      const full = await ensureFullItem(item);
+      if (full) playItem(full);
+      closeSheet();
+    };
+    const hasStream = item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48);
+    playBtn.disabled = !hasStream;
+    playBtn.style.opacity = hasStream ? "1" : ".4";
+    tracksHost.hidden = true;
+    tracksHost.innerHTML = "";
+  }
+
+  // Downloads
   const dl = $("#sheetDownloads");
   dl.innerHTML = "";
   const cleanName = sanitizeFilename(`${item.artist || ""} - ${item.title || "track"}`.trim());
@@ -294,12 +398,62 @@ function fillSheet(item) {
   }
 }
 
+function renderAlbumTracks(album, host) {
+  host.innerHTML = "";
+  const tracks = album.album_tracks || [];
+  if (tracks.length === 0) {
+    host.hidden = true;
+    return;
+  }
+  host.hidden = false;
+  host.append(el("h3", {}, "Tracks"));
+
+  const list = el("div", { class: "tracklist" });
+  tracks.forEach((t, idx) => {
+    const btn = el("button", {
+      class: "track",
+      type: "button",
+      "data-track-id": t.id,
+      onclick: async () => {
+        // Load the track's full detail and play it.
+        const full = await loadItemDetail("single", t.id);
+        if (!full) {
+          alert("Track details not yet harvested. Try again after the next scrape.");
+          return;
+        }
+        // Update playlist to be this album's tracks so prev/next walk it.
+        STATE.playlist = [];
+        for (const tr of tracks) {
+          const cached = ITEM_CACHE.get(`single:${tr.id}`);
+          if (cached && cached.mp3 && (cached.mp3.stream || cached.mp3.kbps128 || cached.mp3.kbps320)) {
+            STATE.playlist.push(cached);
+          }
+        }
+        // If full track isn't yet in playlist, add it.
+        if (!STATE.playlist.find(p => p.id === t.id && p.kind === "single")) {
+          STATE.playlist.push(full);
+        }
+        playItem(full);
+        // Update "is-playing" indicator
+        $$(".track.is-playing", host).forEach(e => e.classList.remove("is-playing"));
+        btn.classList.add("is-playing");
+      },
+    },
+      el("span", { class: "track__num" }, String(idx + 1).padStart(2, "0")),
+      el("span", { class: "track__title" }, t.title || "Untitled"),
+      el("span", { class: "track__play", html: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>` }),
+    );
+    list.append(btn);
+  });
+  host.append(list);
+}
+
 function closeSheet() {
   const dlg = $("#detailSheet");
   if (dlg.open) dlg.close();
 }
 
-// ---------------- Player ----------------------------------------------------
+// ---------------- Player ---------------------------------------------------
 
 const audio = $("#audio");
 
@@ -313,7 +467,6 @@ function playItem(item) {
   STATE.currentIndex = STATE.playlist.findIndex(p => p.id === item.id && p.kind === item.kind);
   STATE.currentItem = item;
 
-  // Reveal player + reserve bottom space.
   $("#player").hidden = false;
   document.body.classList.add("has-player");
 
@@ -414,7 +567,7 @@ const nowPlaying = $("#nowPlaying");
 
 function openNowPlaying() {
   if (!STATE.currentItem) return;
-  $("#npCover").src   = safeUrl(STATE.currentItem.cover) || "";
+  $("#npCover").src    = safeUrl(STATE.currentItem.cover) || "";
   $("#npTitle").textContent  = STATE.currentItem.title || "Untitled";
   $("#npArtist").textContent = STATE.currentItem.artist || "";
   nowPlaying.hidden = false;
@@ -497,7 +650,6 @@ async function ensureSearchIndex() {
 }
 
 function expandSlim(slim) {
-  // Convert slim shape {k,i,t,a,m,l,r} -> standard item shape.
   return {
     kind:  slim.k === "a" ? "album" : "single",
     id:    slim.i,
@@ -506,7 +658,7 @@ function expandSlim(slim) {
     music: slim.m || "",
     label: slim.l || "",
     released: slim.r || "",
-    cover: "",   // covers are loaded on demand
+    cover: "",
     mp3:   { stream: "", kbps320: "", kbps128: "", kbps48: "", zip320: "", zip128: "" },
   };
 }
@@ -524,14 +676,12 @@ async function doSearch(q) {
   q = (q || "").trim().toLowerCase();
   const host = resultsHost();
   if (!host) return;
-
   if (!q) {
     setSearchUI(false);
     host.hidden = true;
     host.innerHTML = "";
     return;
   }
-
   setSearchUI(true);
   host.hidden = false;
   host.innerHTML = "";
@@ -562,13 +712,9 @@ async function doSearch(q) {
   if (matches.length === 0) {
     grid.append(el("div", { class: "empty" }, "No matches in the library."));
   } else {
-    for (const s of matches) {
-      grid.append(buildCard(expandSlim(s), false, null));
-    }
+    for (const s of matches) grid.append(buildCard(expandSlim(s), false, null));
   }
   host.append(grid);
-
-  // Scroll into view.
   host.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -582,7 +728,6 @@ searchClear.addEventListener("click", () => {
   searchInput.focus();
 });
 
-// Cmd/Ctrl+K to focus search.
 document.addEventListener("keydown", (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
     e.preventDefault();
@@ -591,13 +736,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[c]));
-}
-
-// Other keyboard: space toggles play, Esc closes overlays/sheet.
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
   if (e.code === "Space" && audio.src) {
@@ -613,7 +751,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Detail-sheet close handlers
 $$('[data-close]').forEach(b => b.addEventListener("click", closeSheet));
 $("#detailSheet").addEventListener("click", (e) => {
   const rect = $("#detailSheet").getBoundingClientRect();
@@ -638,4 +775,3 @@ async function boot() {
       </div>`;
   }
 }
-boot();

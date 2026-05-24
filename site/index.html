@@ -17,6 +17,24 @@
 </head>
 <body>
 
+<!-- LOGIN GATE — shown by default; app.js removes it after auth succeeds. -->
+<div class="gate" id="loginGate">
+  <form class="gate__card" id="loginForm" autocomplete="off">
+    <svg class="gate__mark" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="32" cy="32" r="3" fill="currentColor"/>
+    </svg>
+    <h1 class="gate__title">Saadi&nbsp;Awaaz</h1>
+    <p class="gate__sub">Private music library — enter your access code</p>
+    <input id="loginInput" type="password" class="gate__input"
+           placeholder="Access code" aria-label="Access code"
+           autocomplete="current-password" />
+    <button class="gate__btn" type="submit">Enter</button>
+    <p class="gate__error" id="loginError" hidden>Incorrect code. Try again.</p>
+  </form>
+</div>
+
 <div class="grain" aria-hidden="true"></div>
 
 <header class="masthead">
@@ -35,6 +53,9 @@
     <div class="masthead__meta">
       <span class="dot"></span>
       <span id="lastUpdated">live feed</span>
+      <button id="logoutBtn" class="masthead__logout" aria-label="Log out" title="Log out">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M10 17l5-5-5-5v3H3v4h7v3zm5-15h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-4v-2h4V4h-4V2z" fill="currentColor"/></svg>
+      </button>
     </div>
   </div>
   <div class="masthead__hairline"></div>
@@ -83,6 +104,8 @@
       <div class="sheet__actions">
         <button class="btn btn--primary" id="sheetPlayBtn">▶ &nbsp;Play</button>
       </div>
+
+      <div class="sheet__tracks" id="sheetTracks" hidden></div>
 
       <div class="sheet__downloads" id="sheetDownloads"></div>
     </div>

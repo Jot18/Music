@@ -235,6 +235,193 @@ a { color: inherit; }
 .is-searching .sectionnav { opacity: .55; }
 .is-searching #app > .section:not(#searchResults) { opacity: .35; pointer-events: none; }
 
+/* ============================================================ Login gate */
+
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background:
+    radial-gradient(800px 600px at 50% 30%, rgba(240,179,35,.10), transparent 60%),
+    var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.gate.is-hidden { display: none; }
+
+.gate__card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-2);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  text-align: center;
+  box-shadow: 0 40px 80px -20px rgba(0,0,0,.7);
+  animation: gateIn .4s cubic-bezier(.2,.7,.2,1);
+}
+@keyframes gateIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.gate__mark {
+  width: 56px; height: 56px;
+  color: var(--marigold);
+  margin-bottom: 14px;
+  animation: spin 24s linear infinite;
+}
+.gate__title {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-style: italic;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--cream);
+}
+.gate__sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 28px;
+}
+
+.gate__input {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: var(--cream);
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 300;
+  outline: none;
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+  transition: border-color .2s ease;
+}
+.gate__input:focus { border-color: var(--marigold); }
+.gate__input::placeholder { color: var(--ink-faint); }
+
+.gate__btn {
+  width: 100%;
+  background: var(--marigold);
+  color: var(--bg);
+  border: 0;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.gate__btn:hover { background: var(--cream); }
+.gate__btn:active { transform: scale(.98); }
+
+.gate__error {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vermillion);
+  margin: 14px 0 0;
+}
+
+/* ============================================================ Logout */
+
+.masthead__logout {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-mute);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  margin-left: 8px;
+  transition: all .2s ease;
+  padding: 0;
+}
+.masthead__logout:hover {
+  color: var(--vermillion);
+  border-color: var(--vermillion);
+}
+
+/* ============================================================ Album track list */
+
+.sheet__tracks {
+  margin: 4px 0 24px;
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+}
+.sheet__tracks h3 {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 12px;
+}
+
+.tracklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.track {
+  display: grid;
+  grid-template-columns: 28px 1fr 32px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  transition: background .15s ease;
+}
+.track:hover { background: rgba(245,233,210,.05); }
+.track:hover .track__play { color: var(--marigold); }
+
+.track__num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.track__title {
+  color: var(--cream);
+  font-size: 15px;
+  font-weight: 300;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.track__play {
+  color: var(--ink-mute);
+  display: grid;
+  place-items: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  transition: color .15s ease, background .15s ease;
+}
+.track__play svg { width: 16px; height: 16px; fill: currentColor; }
+
+.track.is-playing {
+  background: rgba(240,179,35,.08);
+}
+.track.is-playing .track__title { color: var(--marigold); }
+.track.is-playing .track__num   { color: var(--marigold); }
+
 /* ============================================================ Loading */
 
 .loading {

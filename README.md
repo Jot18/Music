@@ -1,79 +1,118 @@
 # Saadi Awaaz
 
-A self-updating Punjabi music wall, backed by a SQLite library.
+A self-updating, password-gated Punjabi music library.
 
 ## What you get
 
 Three live feeds on the homepage — New Singles, New Albums & EPs, and the
-Top 50 Singles chart. A search bar at the top searches the full library
-of tens of thousands of cached tracks by title, artist, album, music
-director, lyricist, or label. Tap any cover for the details — music
-director, lyricist, label, release date, runtime, and download links in
-three bitrates. A mini-player at the bottom streams the track without
-leaving the page; on phones it expands into a Spotify-style full-screen
-now-playing view with swipe-to-dismiss. The player stays out of sight
-until you actually play something.
+Top 50 Singles chart — plus a search bar over the full library of tens of
+thousands of cached tracks.
+
+Tap a single to play it. Tap an album to see its track listing — each
+track is independently playable (the source serves albums as zip
+downloads only, so the player works through the individual tracks).
+
+The mini-player at the bottom streams without leaving the page; on phones
+it expands into a Spotify-style full-screen now-playing view with
+swipe-to-dismiss. The player stays out of sight until you actually play
+something.
+
+## Access
+
+The site is gated by a single password. On first load you enter the code;
+after that, your browser remembers it until you log out. This is a casual
+privacy gate, not real auth — anyone with the public site URL can read
+the JavaScript source. If you need actual multi-user logins, that
+requires a backend (Cloudflare Workers, Firebase, Supabase, etc.) and is
+a separate project.
+
+**To set the password**: edit `site/app.js`, find `ACCESS_HASH`, replace
+its value with the SHA-256 hex digest of your chosen password. In your
+browser's devtools console:
+
+```
+crypto.subtle.digest('SHA-256', new TextEncoder().encode('your_password'))
+  .then(b => console.log([...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')))
+```
+
+The default password is `saadi`. Change it before deploying anything you
+care about.
 
 ## How it stays current
 
-A scheduled job runs every four hours. The first several runs do the
-heavy backfill, walking every paginated category page and harvesting
-detail data in batches that fit GitHub Actions' time limit. Once the
-backfill is complete (about 26,000 singles and 7,500 albums) every run
-just checks the most recent few pages and fetches details for any new
-releases — usually finishing in a couple of minutes.
+Two scrapers run on separate schedules:
 
-The persistent store is a SQLite database (`data/library.db`) that the
-scraper reuses across runs. The website never reads the DB directly;
-instead the scraper exports three slim, browser-friendly artifacts each
-run:
+**Fast scraper** runs every 4 hours. Walks the first 50 pages of singles
+and albums, refreshes the Top 50 chart, and fetches detail pages for up
+to 800 new items. Finishes in 1–3 minutes. This is what keeps the
+homepage fresh.
 
-- `songs.json` — the homepage feeds.
-- `search.json` — a slim search index of every cached song.
-- `data/items/{kind}-{id}.json` — one file per fully detailed song,
-  loaded on demand when you open a card.
+**Deep scraper** runs every 6 hours in the background, offset from the
+fast schedule. Each session walks a sliding window of unseen page ranges
+(default 200 pages per section). Session state is checkpointed in the
+SQLite store, so the next session resumes where the last left off. After
+a few weeks of sessions, the full catalogue (~26,000 singles, ~7,500
+albums) is harvested. Once everything is walked, the deep scraper goes
+to sleep until you reset it.
 
-This keeps the homepage instantaneous even with a library of tens of
-thousands of songs.
+The persistent store is `data/library.db` (SQLite). Each run exports
+slim browser-friendly artifacts:
+
+- `data/songs.json` — homepage feeds
+- `data/search.json` — slim search index of every cached song
+- `data/items/{kind}-{id}.json` — per-song details, loaded on demand
+
+The homepage loads instantly because the browser never sees the whole DB.
 
 ## Sections
 
-**New Singles** — every new single, ordered by first-seen date.
-
-**New Albums & EPs** — every album and EP release, same ordering.
-
-**Top 50 Singles** — the live ranked chart of trending singles.
+**New Singles** — newest single releases.
+**New Albums & EPs** — newest albums and EPs. Tap one to see and play
+its tracks.
+**Top 50 Singles** — the live ranked chart.
 
 ## Setup
 
 1. Push the repo to GitHub.
-2. **Settings → Pages**, set the source to *GitHub Actions*.
-3. **Settings → Actions → General**, switch workflow permissions to
-   *Read and write*.
-4. Open the **Actions** tab, pick *Scrape & Deploy*, click *Run workflow*,
-   leave the mode on *auto*. The first run takes around 30 minutes; if
-   the library isn't fully harvested in one run, just kick off another
-   run — each one picks up where the last left off.
+2. **Settings → Pages**, source = *GitHub Actions*.
+3. **Settings → Actions → General**, workflow permissions = *Read and write*.
+4. Edit `site/app.js` and change `ACCESS_HASH` to a hash of your password.
+   Commit and push.
+5. Open the **Actions** tab and run the **Scrape (fast) & Deploy** workflow
+   once to populate the homepage.
+6. Run the **Scrape (deep, background)** workflow to start the backfill.
+   You can kick it off repeatedly to walk through the catalogue faster,
+   or just let the 6-hour schedule do its work over a few weeks.
 
 The site goes live at `https://<your-username>.github.io/<your-repo>/`.
 
 ## Manual controls
 
-The *Run workflow* dialog has three knobs:
+**Fast workflow** has two knobs: pages per section (default 50) and the
+detail-fetch budget (default 800).
 
-- **mode** — `auto` (default), `full` (force a deep walk), or `recent`
-  (skip the deep walk and just check the first few pages).
-- **recent_pages** — how many pages per section in `recent` mode. Default 5.
-- **max_details** — cap on detail-page fetches per run. Default 800.
+**Deep workflow** has three: pages per session (default 200), detail
+budget, and a reset switch. Set reset to `yes` to start the deep walk
+over from page 1.
+
+## A note on download filenames
+
+Browsers ignore the `download` attribute on cross-origin links. The MP3
+and ZIP files are served from the source CDN, so the saved filename comes
+from the URL and may contain the source's branding. There's no way to
+rewrite this from a static site — it would require routing downloads
+through a proxy service. If that matters to you, ping me and I'll wire up
+a Cloudflare Worker that strips the suffix.
 
 ## Layout
 
 ```
-.github/workflows/   automation
-scraper/             the scraper
-data/library.db      the SQLite cache (the source of truth)
-data/songs.json      homepage feeds
-data/search.json     search index
-data/items/          per-song detail files (on-demand)
-site/                the static frontend
+.github/workflows/fast.yml    fast scraper + deploy (every 4h)
+.github/workflows/deep.yml    background deep scraper (every 6h)
+scraper/scrape.py             entry point for both modes (MODE env var)
+data/library.db               SQLite source of truth
+data/songs.json               homepage feeds
+data/search.json              search index
+data/items/                   per-song detail files
+site/                         static frontend
 ```

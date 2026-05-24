@@ -1,35 +1,43 @@
 #!/usr/bin/env python3
 """
-Scraper v6 — SQLite-backed Punjabi music harvester.
+Scraper v7 — SQLite-backed Punjabi music harvester.
 
-Architecture
+Two complementary modes
+-----------------------
+  fast (every 4h) — Walks the first 50 pages of each paginated section, plus
+                    the Top 50 chart. Fetches detail pages for any new items.
+                    Designed to keep the homepage fresh in under 2 minutes.
+
+  deep (every 6h, background) — Walks a sliding window of unseen page ranges.
+                    Each invocation handles up to PAGES_PER_SESSION pages
+                    (default 200). State is checkpointed in the DB so the next
+                    session resumes from the next batch. After the full
+                    catalogue is walked, deep mode short-circuits to a no-op
+                    until reset.
+
+Both write to the same SQLite store (data/library.db) and the same export
+files (data/songs.json, data/search.json, data/items/*.json).
+
+Album track lists
+-----------------
+Album detail pages are zip-only — there's no streamable audio. So when we
+fetch an album page we ALSO capture the list of `/get/` track links it
+contains. The site renders these as a playable track list when the album
+sheet opens.
+
+Entry points
 ------------
-- Persistent store: data/library.db (SQLite). Survives between runs.
-- The scraper walks djjohal's paginated listings, queues unknown items into
-  the DB, then fetches detail pages up to a per-run budget. Detail fetches
-  are checkpointed: if a run is cut short, the next one resumes from where
-  it left off.
+Run as:
+  MODE=fast  python scraper/scrape.py
+  MODE=deep  python scraper/scrape.py
 
-Modes (set via DEEP_SCRAPE env var)
------
-  full       walk every page of every section (no early stop). Use this for
-             the initial backfill. Spread across multiple runs because of
-             GitHub Actions' 6-hour single-job limit.
-  recent     walk only the first N pages of each section. Use this once
-             the full backfill is complete. Default N=5.
-  auto       full if the library is small (singles < 1000 or albums < 500),
-             otherwise recent.
-
-Output written every run
-------------------------
-  data/library.db                 the SQLite store
-  data/songs.json                 small homepage payload (live feeds only)
-  data/search.json                slim search index (every song, lite fields)
-  data/items/{kind}-{id}.json     one file per fully-detailed song
-
-This lets the website load the homepage in milliseconds even with tens of
-thousands of cached songs, and pull full records on demand when a user opens
-a detail sheet.
+Env vars
+--------
+  MODE                fast | deep                       (required)
+  FAST_PAGES          pages per section in fast mode    (default 50)
+  PAGES_PER_SESSION   pages per section in deep mode    (default 200)
+  MAX_DETAIL_FETCHES  detail-page budget per run        (default 800)
+  RESET_DEEP          'yes' to restart deep crawl       (default no)
 """
 
 from __future__ import annotations
@@ -37,16 +45,19 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
 import sqlite3
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs
 
 import requests
 from bs4 import BeautifulSoup
+
+# ===========================================================================
+# Config
+# ===========================================================================
 
 SOURCE = "https://www.djjohal.com"
 
@@ -57,7 +68,7 @@ SECTIONS = [
         "url": f"{SOURCE}/category.php?cat=Single%20Track",
         "kind": "single",
         "paginate": True,
-        "feed_cap": 60,      # how many items show in the live homepage feed
+        "feed_cap": 100,
     },
     {
         "id": "new_albums",
@@ -65,7 +76,7 @@ SECTIONS = [
         "url": f"{SOURCE}/category.php?cat=Punjabi",
         "kind": "album",
         "paginate": True,
-        "feed_cap": 60,
+        "feed_cap": 100,
     },
     {
         "id": "top_singles",
@@ -77,20 +88,20 @@ SECTIONS = [
     },
 ]
 
-MODE = os.environ.get("DEEP_SCRAPE", "auto").lower()
+# Paginated sections that the deep scraper walks. These are the ones with
+# thousands of pages and need a sessioned backfill.
+DEEP_SECTIONS = [s for s in SECTIONS if s["paginate"]]
 
-# Per-run budgets.
-MAX_PAGES_PER_SECTION_FULL   = 2000   # safety ceiling; djjohal singles peak around 1660
-MAX_PAGES_PER_SECTION_RECENT = int(os.environ.get("RECENT_PAGES", "5"))
-MAX_DETAIL_FETCHES_PER_RUN   = int(os.environ.get("MAX_DETAIL_FETCHES", "800"))
+MODE = os.environ.get("MODE", "fast").lower()
+
+FAST_PAGES         = int(os.environ.get("FAST_PAGES", "50"))
+PAGES_PER_SESSION  = int(os.environ.get("PAGES_PER_SESSION", "200"))
+MAX_DETAIL_FETCHES = int(os.environ.get("MAX_DETAIL_FETCHES", "800"))
+RESET_DEEP         = os.environ.get("RESET_DEEP", "no").lower() == "yes"
 
 DETAIL_DELAY_SECONDS  = 0.25
 LISTING_DELAY_SECONDS = 0.30
 REQUEST_TIMEOUT       = 25
-
-# Auto-mode thresholds.
-AUTO_FULL_IF_SINGLES_BELOW = 1000
-AUTO_FULL_IF_ALBUMS_BELOW  = 500
 
 HEADERS = {
     "User-Agent": (
@@ -102,22 +113,22 @@ HEADERS = {
 
 DETAIL_PATH_RE = re.compile(r"^/(single|get|album)/(\d+)/([^/]+)\.html$")
 
-
-# ===========================================================================
-# Persistence (SQLite)
-# ===========================================================================
-
 ROOT      = Path(__file__).resolve().parent.parent
 DATA_DIR  = ROOT / "data"
 ITEMS_DIR = DATA_DIR / "items"
 DB_PATH   = DATA_DIR / "library.db"
 
+
+# ===========================================================================
+# Schema
+# ===========================================================================
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS items (
-    kind            TEXT NOT NULL,            -- 'single' | 'album'
-    id              TEXT NOT NULL,            -- djjohal item id
+    kind            TEXT NOT NULL,
+    id              TEXT NOT NULL,
     slug            TEXT NOT NULL,
-    url_kind        TEXT NOT NULL,            -- 'get' | 'single' | 'album' (the URL path used)
+    url_kind        TEXT NOT NULL,
     detail_url      TEXT NOT NULL,
     title           TEXT,
     artist          TEXT,
@@ -134,19 +145,19 @@ CREATE TABLE IF NOT EXISTS items (
     mp3_48          TEXT,
     zip_320         TEXT,
     zip_128         TEXT,
-    has_detail      INTEGER NOT NULL DEFAULT 0,  -- 1 once detail page fetched
+    album_tracks    TEXT,         -- JSON array of {id, slug, title} for albums
+    has_detail      INTEGER NOT NULL DEFAULT 0,
     first_seen_at   TEXT NOT NULL,
     last_seen_at    TEXT NOT NULL,
     detail_fetched_at TEXT,
-    listing_text    TEXT,                     -- cached anchor text for fallback parsing
+    listing_text    TEXT,
+    discovery_rank  INTEGER,      -- higher = newer on djjohal page 1
     PRIMARY KEY (kind, id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_items_kind_seen
-    ON items(kind, first_seen_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_items_has_detail
-    ON items(has_detail, kind);
+CREATE INDEX IF NOT EXISTS idx_items_kind_seen   ON items(kind, first_seen_at DESC);
+CREATE INDEX IF NOT EXISTS idx_items_has_detail  ON items(has_detail, kind);
+-- idx_items_discovery is created in _ensure_columns after the column exists.
 
 CREATE TABLE IF NOT EXISTS section_items (
     section_id  TEXT NOT NULL,
@@ -156,8 +167,17 @@ CREATE TABLE IF NOT EXISTS section_items (
     PRIMARY KEY (section_id, position)
 );
 
+-- Deep-scraper bookkeeping: how far have we walked each section?
+CREATE TABLE IF NOT EXISTS crawl_state (
+    section_id      TEXT PRIMARY KEY,
+    next_page       INTEGER NOT NULL DEFAULT 1,
+    last_session_at TEXT,
+    pages_walked    INTEGER NOT NULL DEFAULT 0,
+    is_complete     INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS meta (
-    key   TEXT PRIMARY KEY,
+    key TEXT PRIMARY KEY,
     value TEXT
 );
 """
@@ -168,14 +188,56 @@ def db_open() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _ensure_columns(conn)
     if fresh:
         _migrate_legacy_songs_json(conn)
     return conn
 
 
+def _ensure_columns(conn):
+    """Add any columns that may be missing on an older DB.
+
+    SQLite's CREATE TABLE IF NOT EXISTS does NOT add columns to a table
+    that already exists. So when we upgrade from an older schema, we need
+    to ALTER TABLE for each new column.
+    """
+    existing = {r["name"] for r in conn.execute("PRAGMA table_info(items)")}
+    additions = [
+        ("album_tracks",   "TEXT"),
+        ("discovery_rank", "INTEGER"),   # global insertion order, monotonic
+    ]
+    for col, col_type in additions:
+        if col not in existing:
+            print(f"[migrate] adding items.{col} {col_type}")
+            conn.execute(f"ALTER TABLE items ADD COLUMN {col} {col_type}")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_items_discovery "
+        "ON items(kind, discovery_rank DESC)"
+    )
+    # Back-fill discovery_rank for existing rows so the homepage ordering
+    # works on the first run after the upgrade. We use the rowid (insertion
+    # order) as a proxy — rows inserted earliest get lower ranks, latest
+    # get higher ranks, which matches "newest first" because the scraper
+    # walks djjohal page 1 (newest) first.
+    needs_backfill = conn.execute(
+        "SELECT COUNT(*) n FROM items WHERE discovery_rank IS NULL"
+    ).fetchone()["n"]
+    if needs_backfill:
+        print(f"[migrate] back-filling discovery_rank for {needs_backfill} rows")
+        # Use rowid as the seed: lower rowid = earlier insertion = newer on djjohal page 1.
+        # Invert so higher discovery_rank = newer.
+        max_rowid = conn.execute("SELECT MAX(rowid) m FROM items").fetchone()["m"] or 0
+        conn.execute(
+            "UPDATE items SET discovery_rank = ? - rowid WHERE discovery_rank IS NULL",
+            (max_rowid + 1,),
+        )
+    # Always sync the counter to the current max, so new inserts continue
+    # the sequence without gaps or collisions.
+    _seed_max_rank_from_table(conn)
+    conn.commit()
+
+
 def _migrate_legacy_songs_json(conn):
-    """If a legacy songs.json from v1-v5 exists, import any cached items
-    into the new SQLite store so we don't have to re-fetch them."""
     legacy = DATA_DIR / "songs.json"
     if not legacy.exists():
         return
@@ -183,15 +245,10 @@ def _migrate_legacy_songs_json(conn):
         data = json.loads(legacy.read_text(encoding="utf-8"))
     except Exception:
         return
-
     now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     imported = 0
     seen = set()
-
-    # Three possible legacy shapes: items[], archive[], sections[].items[]
-    pools = []
-    pools.append(data.get("items", []) or [])
-    pools.append(data.get("archive", []) or [])
+    pools = [data.get("items", []) or [], data.get("archive", []) or []]
     for s in (data.get("sections", []) or []):
         pools.append(s.get("items", []) or [])
 
@@ -205,10 +262,8 @@ def _migrate_legacy_songs_json(conn):
             if key in seen:
                 continue
             seen.add(key)
-
             mp3 = item.get("mp3", {}) or {}
             has_detail = 1 if (item.get("cover") and item.get("title")) else 0
-
             try:
                 conn.execute(
                     "INSERT OR IGNORE INTO items (kind, id, slug, url_kind, detail_url, "
@@ -239,30 +294,13 @@ def _migrate_legacy_songs_json(conn):
                 pass
     conn.commit()
     if imported:
-        print(f"[migrate] imported {imported} legacy items from songs.json into library.db")
-
-
-def db_set_meta(conn, key: str, value: str):
-    conn.execute(
-        "INSERT INTO meta(key, value) VALUES (?, ?) "
-        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
-        (key, value),
-    )
-
-
-def db_get_meta(conn, key: str, default: str = "") -> str:
-    row = conn.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
-    return row["value"] if row else default
+        print(f"[migrate] imported {imported} legacy items from songs.json")
 
 
 def db_counts(conn) -> tuple[int, int]:
-    singles = conn.execute(
-        "SELECT COUNT(*) AS n FROM items WHERE kind='single'"
-    ).fetchone()["n"]
-    albums = conn.execute(
-        "SELECT COUNT(*) AS n FROM items WHERE kind='album'"
-    ).fetchone()["n"]
-    return singles, albums
+    s = conn.execute("SELECT COUNT(*) n FROM items WHERE kind='single'").fetchone()["n"]
+    a = conn.execute("SELECT COUNT(*) n FROM items WHERE kind='album'").fetchone()["n"]
+    return s, a
 
 
 # ===========================================================================
@@ -282,12 +320,19 @@ def fetch(url: str) -> str:
     raise RuntimeError(f"Failed to fetch {url}: {last_err}")
 
 
+def build_page_url(section_url: str, page: int) -> str:
+    """djjohal pagination: append &page=N (page=1 is the bare URL)."""
+    if page <= 1:
+        return section_url
+    sep = "&" if "?" in section_url else "?"
+    return f"{section_url}{sep}page={page}"
+
+
 # ===========================================================================
-# Listing parsing
+# Parsing
 # ===========================================================================
 
 def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | None]:
-    """Return (entries, next_page_url_or_None)."""
     soup = BeautifulSoup(html, "html.parser")
     items: list[dict] = []
     seen_ids: set[str] = set()
@@ -315,13 +360,10 @@ def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | No
             if item_id in seen_ids:
                 continue
             seen_ids.add(item_id)
-
             text = a.get_text(" ", strip=True)
             text = re.sub(r"^\s*\d+\.\s*", "", text)
             items.append({
-                "id": item_id,
-                "slug": slug,
-                "url_kind": url_kind,
+                "id": item_id, "slug": slug, "url_kind": url_kind,
                 "detail_url": urljoin(SOURCE + "/", path.lstrip("/")),
                 "listing_text": text,
             })
@@ -349,6 +391,38 @@ def parse_listing_text(text: str, kind: str) -> tuple[str, str]:
         return title.strip(), artist.strip()
     title, artist = text.rsplit(" - ", 1)
     return title.strip(), artist.strip()
+
+
+def extract_album_tracks(html: str) -> list[dict]:
+    """From an album detail page, extract the list of child tracks.
+
+    Each track entry: {id, slug, title}
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    tracks: list[dict] = []
+    seen = set()
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        # Album pages reference tracks as /get/{id}/{slug}.html
+        if not href:
+            continue
+        path = href if not href.startswith("http") else href[len(SOURCE):] if href.startswith(SOURCE) else ""
+        if not path.startswith("/"):
+            continue
+        m = re.match(r"^/get/(\d+)/([^/?]+)\.html", path.split("?")[0])
+        if not m:
+            continue
+        tid, tslug = m.group(1), m.group(2)
+        if tid in seen:
+            continue
+        seen.add(tid)
+        # Title: prefer the link's title attribute or its text
+        title = a.get("title") or a.get_text(" ", strip=True) or tslug.replace("-", " ")
+        # Strip any trailing " - Artist" tail to get just the track name
+        if " - " in title:
+            title = title.split(" - ")[0].strip()
+        tracks.append({"id": tid, "slug": tslug, "title": title})
+    return tracks
 
 
 def parse_detail(html: str, kind: str) -> dict:
@@ -426,6 +500,10 @@ def parse_detail(html: str, kind: str) -> dict:
     if not stream:
         stream = mp3_128 or mp3_320 or mp3_48
 
+    album_tracks: list[dict] = []
+    if kind == "album":
+        album_tracks = extract_album_tracks(html)
+
     return {
         "title": title.strip(), "artist": artist.strip(),
         "music": music, "lyrics": lyrics, "label": label,
@@ -433,208 +511,208 @@ def parse_detail(html: str, kind: str) -> dict:
         "cover": cover, "stream_url": stream,
         "mp3_320": mp3_320, "mp3_128": mp3_128, "mp3_48": mp3_48,
         "zip_320": zip_320, "zip_128": zip_128,
+        "album_tracks": album_tracks,
     }
 
 
 # ===========================================================================
-# Walker
+# DB writes
 # ===========================================================================
 
-def upsert_listing_entry(conn, entry: dict, kind: str, now_iso: str) -> bool:
-    """Insert if new. Returns True if newly inserted, False if existing."""
-    cur = conn.execute(
-        "SELECT 1 FROM items WHERE kind=? AND id=?",
-        (kind, entry["id"]),
+def _next_discovery_rank(conn) -> int:
+    """Atomic counter for discovery_rank. Higher = newer."""
+    row = conn.execute("SELECT value FROM meta WHERE key='max_rank'").fetchone()
+    cur = int(row["value"]) if row else 0
+    nxt = cur + 1
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES ('max_rank', ?) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (str(nxt),),
     )
-    if cur.fetchone():
+    return nxt
+
+
+def _seed_max_rank_from_table(conn):
+    """Initialize the max_rank counter from whatever is already in items."""
+    row = conn.execute(
+        "SELECT COALESCE(MAX(discovery_rank), 0) m FROM items"
+    ).fetchone()
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES ('max_rank', ?) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (str(row["m"]),),
+    )
+
+
+def upsert_listing_entry(conn, entry: dict, kind: str, now_iso: str) -> bool:
+    """Insert if new. Returns True if newly inserted."""
+    if conn.execute(
+        "SELECT 1 FROM items WHERE kind=? AND id=?", (kind, entry["id"]),
+    ).fetchone():
         conn.execute(
-            "UPDATE items SET last_seen_at=?, listing_text=? "
-            "WHERE kind=? AND id=?",
+            "UPDATE items SET last_seen_at=?, listing_text=? WHERE kind=? AND id=?",
             (now_iso, entry["listing_text"], kind, entry["id"]),
         )
         return False
-
     lt_title, lt_artist = parse_listing_text(entry["listing_text"], kind)
+    rank = _next_discovery_rank(conn)
     conn.execute(
-        "INSERT INTO items (kind, id, slug, url_kind, detail_url, "
-        "title, artist, has_detail, first_seen_at, last_seen_at, listing_text) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)",
+        "INSERT INTO items (kind, id, slug, url_kind, detail_url, title, artist, "
+        "has_detail, first_seen_at, last_seen_at, listing_text, discovery_rank) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)",
         (kind, entry["id"], entry["slug"], entry["url_kind"], entry["detail_url"],
-         lt_title, lt_artist, now_iso, now_iso, entry["listing_text"]),
+         lt_title, lt_artist, now_iso, now_iso, entry["listing_text"], rank),
     )
     return True
 
 
-def walk_section(conn, section: dict, mode: str, now_iso: str) -> tuple[int, int]:
-    """
-    Walk listings for this section. Inserts new rows into items.
-    Returns (pages_walked, new_items_added).
-    """
-    if mode == "full":
-        max_pages = MAX_PAGES_PER_SECTION_FULL
-    else:
-        max_pages = MAX_PAGES_PER_SECTION_RECENT
+# ===========================================================================
+# Walkers
+# ===========================================================================
 
-    print(f"  mode={mode}  max_pages={max_pages}")
-
+def walk_pages(conn, section: dict, page_start: int, page_count: int,
+               now_iso: str) -> tuple[int, int, bool]:
+    """
+    Walk `page_count` pages of `section` starting from page `page_start`.
+    Returns (pages_actually_walked, new_items, hit_end).
+    hit_end == True if djjohal returned no entries (we've reached the catalogue end).
+    """
     pages_walked = 0
     new_items = 0
-    seen_ids_this_run: set[str] = set()
-    page_url = section["url"]
-    page_num = 1
+    hit_end = False
+    seen_in_this_run: set[str] = set()
 
-    while page_url and page_num <= max_pages:
-        if page_num % 20 == 1 or page_num <= 3:
-            print(f"  page {page_num}: {page_url}", flush=True)
+    for p in range(page_start, page_start + page_count):
+        url = build_page_url(section["url"], p)
+        if p == page_start or p % 25 == 0:
+            print(f"  page {p}: {url}", flush=True)
         try:
-            html = fetch(page_url)
+            html = fetch(url)
         except Exception as e:
-            print(f"    ! page fetch failed: {e}", file=sys.stderr)
+            print(f"    ! fetch failed for page {p}: {e}", file=sys.stderr)
             break
 
-        entries, next_url = extract_listing(html, section["kind"])
+        entries, _ = extract_listing(html, section["kind"])
         pages_walked += 1
 
         if not entries:
-            print(f"    page {page_num}: no entries, stopping")
+            print(f"    page {p}: empty -> reached end of catalogue")
+            hit_end = True
             break
 
-        # Dedupe vs earlier pages this run.
         new_on_page = []
         for e in entries:
-            if e["id"] in seen_ids_this_run:
+            if e["id"] in seen_in_this_run:
                 continue
-            seen_ids_this_run.add(e["id"])
+            seen_in_this_run.add(e["id"])
             new_on_page.append(e)
+
         if not new_on_page:
-            print(f"    page {page_num}: repeated earlier content, stopping")
+            print(f"    page {p}: only repeats; stopping")
             break
 
-        # Upsert. Track which section position each item lives at, but only
-        # for page 1 — that's the homepage feed ordering.
         page_new = 0
         for e in new_on_page:
-            was_new = upsert_listing_entry(conn, e, section["kind"], now_iso)
-            if was_new:
+            if upsert_listing_entry(conn, e, section["kind"], now_iso):
                 page_new += 1
         new_items += page_new
+        if page_new and (p == page_start or p % 25 == 0):
+            print(f"    page {p}: +{page_new} new (run total: {new_items})")
 
-        if page_num <= 3 or page_num % 20 == 0:
-            print(f"    page {page_num}: +{page_new} new (total new this section: {new_items})")
-
-        if not section["paginate"]:
-            break
-        if not next_url:
-            print(f"    no next-page link; stopping")
-            break
-
-        page_url = next_url
-        page_num += 1
         time.sleep(LISTING_DELAY_SECONDS)
 
-    # Record the live-feed ordering: first feed_cap items from page 1 area.
-    # We'll re-query in priority order: first_seen_at desc for category pages,
-    # listing order for topTracks (we keep an ordered list by capturing as we go).
-    return pages_walked, new_items
+    conn.commit()
+    return pages_walked, new_items, hit_end
 
 
-def record_top_chart_order(conn, section: dict, now_iso: str):
-    """Special-case: topTracks pages have an explicit ranking. Capture
-    the rank ordering separately so we can render it on the site."""
-    if section["paginate"]:
-        # Non-chart sections use chronological ordering (first_seen_at DESC).
-        # No explicit ranking needed.
-        return
-
+def capture_top_chart(conn, section: dict, now_iso: str):
+    """Refresh section_items table for the Top 50 chart."""
     try:
         html = fetch(section["url"])
     except Exception as e:
         print(f"  ! chart fetch failed: {e}", file=sys.stderr)
         return
-
     entries, _ = extract_listing(html, section["kind"])
     conn.execute("DELETE FROM section_items WHERE section_id=?", (section["id"],))
     for pos, e in enumerate(entries[:section["feed_cap"]]):
-        # Make sure the item is upserted.
         upsert_listing_entry(conn, e, section["kind"], now_iso)
         conn.execute(
             "INSERT INTO section_items(section_id, position, kind, item_id) "
             "VALUES (?, ?, ?, ?)",
             (section["id"], pos, section["kind"], e["id"]),
         )
+    conn.commit()
 
 
 # ===========================================================================
-# Detail-page fetching (budgeted)
+# Detail-page fetching (budgeted, priority queue)
 # ===========================================================================
 
-def needs_detail_refetch(row: sqlite3.Row) -> bool:
-    """Detect old/buggy entries that should get a fresh detail fetch."""
-    if not row["has_detail"]:
-        return True
-    title = (row["title"] or "").lower()
-    if not title or title.startswith("s latest") or "latest music from" in title:
-        return True
-    if not row["cover"]:
-        return True
-    return False
+def _iso_timestamp(s: str | None) -> float:
+    if not s: return 0.0
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        return 0.0
 
 
 def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
     """Fetch detail pages for items lacking them, up to `budget`.
 
-    Priority order:
-      1. items in any live-feed section (section_items table)
-      2. newest-first by first_seen_at
-    Returns number of pages fetched.
+    Priority:
+      1. Items in the live homepage feeds (top N by discovery_rank per kind).
+      2. Other items with high discovery_rank (next-newest from djjohal).
+      3. Everything else, newest first by discovery_rank.
     """
-    fetched = 0
+    # Build priority set: items the homepage will show + items in section_items.
+    priority = set()
+    for r in conn.execute("SELECT kind, item_id FROM section_items"):
+        priority.add((r["kind"], r["item_id"]))
+    # Homepage shows top 100 of each kind by discovery_rank.
+    for kind in ("single", "album"):
+        for r in conn.execute(
+            "SELECT kind, id FROM items WHERE kind=? "
+            "ORDER BY discovery_rank DESC LIMIT 100",
+            (kind,),
+        ):
+            priority.add((r["kind"], r["id"]))
 
-    # Build a single queue: top-priority items first, then chronological.
-    priority_ids = set()
-    for row in conn.execute(
-        "SELECT kind, item_id FROM section_items"
-    ):
-        priority_ids.add((row["kind"], row["item_id"]))
-
-    # Pull all items missing details.
+    # All pending rows, fetched newest-first by discovery_rank.
     rows = conn.execute(
-        "SELECT * FROM items WHERE has_detail=0 ORDER BY first_seen_at DESC"
+        "SELECT * FROM items WHERE has_detail=0 "
+        "ORDER BY discovery_rank DESC"
     ).fetchall()
+    # Move priority rows to the front.
+    rows = sorted(
+        rows,
+        key=lambda r: (0 if (r["kind"], r["id"]) in priority else 1,
+                       -(r["discovery_rank"] or 0))
+    )
 
-    # Re-order: priority items first.
-    def sort_key(r):
-        in_prio = (r["kind"], r["id"]) in priority_ids
-        return (0 if in_prio else 1, r["first_seen_at"])
-    # Sorting tuple: priority bucket asc, then first_seen_at DESC (newer first).
-    rows = sorted(rows, key=lambda r: (0 if (r["kind"], r["id"]) in priority_ids else 1,
-                                       -_iso_timestamp(r["first_seen_at"])))
-
-    print(f"\n[detail] {len(rows)} items lack details. budget={budget}")
-
+    print(f"\n[detail] {len(rows)} items pending detail. budget={budget}")
+    fetched = 0
     for row in rows:
         if fetched >= budget:
-            print(f"    budget exhausted at {fetched}; remaining will be picked up next run.")
+            print(f"  budget exhausted at {fetched}; remaining will pick up next run")
             break
-
         try:
             html = fetch(row["detail_url"])
             d = parse_detail(html, row["kind"])
 
-            # If detail-page extraction missed title/artist, fall back to
-            # the listing-text version we cached when we discovered the row.
             lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", row["kind"])
             title  = d["title"]  or row["title"]  or lt_title  or ""
             artist = d["artist"] or row["artist"] or lt_artist or ""
-            # Prefer the clean listing-text split when it has both parts.
             if lt_title and lt_artist:
                 title, artist = lt_title, lt_artist
+
+            album_tracks_json = json.dumps(d["album_tracks"], ensure_ascii=False) if d["album_tracks"] else ""
 
             conn.execute(
                 "UPDATE items SET "
                 "title=?, artist=?, music=?, lyrics=?, label=?, released=?, "
                 "playtime=?, plays=?, cover=?, "
                 "stream_url=?, mp3_320=?, mp3_128=?, mp3_48=?, zip_320=?, zip_128=?, "
+                "album_tracks=?, "
                 "has_detail=1, detail_fetched_at=?, last_seen_at=? "
                 "WHERE kind=? AND id=?",
                 (
@@ -642,57 +720,58 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
                     d["playtime"], d["plays"], d["cover"],
                     d["stream_url"], d["mp3_320"], d["mp3_128"], d["mp3_48"],
                     d["zip_320"], d["zip_128"],
+                    album_tracks_json,
                     now_iso, now_iso,
                     row["kind"], row["id"],
                 ),
             )
+
+            # If this was an album, also queue its child tracks as singles so
+            # their detail pages get fetched next run (or now if budget allows).
+            if row["kind"] == "album" and d["album_tracks"]:
+                for t in d["album_tracks"]:
+                    track_url = f"{SOURCE}/get/{t['id']}/{t['slug']}.html"
+                    upsert_listing_entry(conn, {
+                        "id": t["id"], "slug": t["slug"], "url_kind": "get",
+                        "detail_url": track_url,
+                        "listing_text": f"{t['title']} - {artist}" if artist else t["title"],
+                    }, "single", now_iso)
+
             fetched += 1
             if fetched % 25 == 0:
                 conn.commit()
-                print(f"    [{fetched}/{budget}]  {row['kind']}:{row['id']}  {title[:60]}", flush=True)
+                print(f"  [{fetched}/{budget}]  {row['kind']}:{row['id']}  {title[:60]}", flush=True)
             time.sleep(DETAIL_DELAY_SECONDS)
         except Exception as e:
-            print(f"    ! detail failed for {row['kind']}:{row['id']}: {e}", file=sys.stderr)
+            print(f"  ! detail failed {row['kind']}:{row['id']}: {e}", file=sys.stderr)
 
     conn.commit()
-    print(f"[detail] done. {fetched} pages fetched this run.")
+    print(f"[detail] done. fetched {fetched} pages this run.")
     return fetched
 
 
-def _iso_timestamp(s: str | None) -> float:
-    """Parse ISO string to unix timestamp for sorting. Empty -> 0."""
-    if not s:
-        return 0.0
-    try:
-        return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
-    except Exception:
-        return 0.0
-
-
 # ===========================================================================
-# Exporters — produce site-ready JSON
+# Exporters
 # ===========================================================================
 
 def row_to_item_dict(row: sqlite3.Row, slim: bool = False) -> dict:
     base = {
-        "id": row["id"],
-        "kind": row["kind"],
-        "title": row["title"] or "",
-        "artist": row["artist"] or "",
+        "id": row["id"], "kind": row["kind"],
+        "title": row["title"] or "", "artist": row["artist"] or "",
     }
     if slim:
         return base
+    try:
+        album_tracks = json.loads(row["album_tracks"]) if row["album_tracks"] else []
+    except Exception:
+        album_tracks = []
     base.update({
-        "music":    row["music"] or "",
-        "lyrics":   row["lyrics"] or "",
-        "label":    row["label"] or "",
-        "released": row["released"] or "",
-        "playtime": row["playtime"] or "",
-        "plays":    row["plays"] or "",
-        "cover":    row["cover"] or "",
+        "music": row["music"] or "", "lyrics": row["lyrics"] or "",
+        "label": row["label"] or "", "released": row["released"] or "",
+        "playtime": row["playtime"] or "", "plays": row["plays"] or "",
+        "cover": row["cover"] or "",
         "detail_url": row["detail_url"],
-        "slug":     row["slug"],
-        "url_kind": row["url_kind"],
+        "slug": row["slug"], "url_kind": row["url_kind"],
         "mp3": {
             "stream":  row["stream_url"] or "",
             "kbps320": row["mp3_320"]   or "",
@@ -701,6 +780,7 @@ def row_to_item_dict(row: sqlite3.Row, slim: bool = False) -> dict:
             "zip320":  row["zip_320"]   or "",
             "zip128":  row["zip_128"]   or "",
         },
+        "album_tracks": album_tracks,
         "first_seen_at": row["first_seen_at"],
         "last_seen_at":  row["last_seen_at"],
     })
@@ -708,24 +788,25 @@ def row_to_item_dict(row: sqlite3.Row, slim: bool = False) -> dict:
 
 
 def export_homepage(conn, now_iso: str):
-    """Write data/songs.json — only the live feeds, no full catalog."""
     sections_out = []
     for section in SECTIONS:
         if section["paginate"]:
-            # Chronological feed: newest first.
+            # Newest-first by discovery_rank. This is the actual order djjohal
+            # listed items in (page 1 = newest), captured at scrape time and
+            # stable across runs — unlike first_seen_at which collapses when
+            # 26K rows get inserted in one deep-walk batch.
             rows = conn.execute(
-                "SELECT * FROM items WHERE kind=? ORDER BY first_seen_at DESC LIMIT ?",
+                "SELECT * FROM items WHERE kind=? "
+                "ORDER BY discovery_rank DESC LIMIT ?",
                 (section["kind"], section["feed_cap"]),
             ).fetchall()
         else:
-            # Ranked chart: pull in section_items order.
             rows = conn.execute(
-                "SELECT i.*, si.position FROM items i "
+                "SELECT i.* FROM items i "
                 "JOIN section_items si ON si.kind=i.kind AND si.item_id=i.id "
                 "WHERE si.section_id=? ORDER BY si.position",
                 (section["id"],),
             ).fetchall()
-
         items = []
         for idx, r in enumerate(rows):
             d = row_to_item_dict(r, slim=False)
@@ -734,80 +815,68 @@ def export_homepage(conn, now_iso: str):
                 d["rank"] = idx + 1
             items.append(d)
 
+        # Total available for this section's kind (for UI's "showing X of Y").
+        total = conn.execute(
+            "SELECT COUNT(*) n FROM items WHERE kind=?", (section["kind"],)
+        ).fetchone()["n"] if section["paginate"] else len(items)
+
         sections_out.append({
-            "id": section["id"],
-            "title": section["title"],
-            "kind": section["kind"],
-            "items": items,
+            "id": section["id"], "title": section["title"],
+            "kind": section["kind"], "items": items,
+            "total_available": total,
         })
 
     singles, albums = db_counts(conn)
+    crawl = {}
+    for r in conn.execute("SELECT * FROM crawl_state"):
+        crawl[r["section_id"]] = {
+            "next_page": r["next_page"],
+            "pages_walked": r["pages_walked"],
+            "is_complete": bool(r["is_complete"]),
+            "last_session_at": r["last_session_at"],
+        }
     output = {
         "generated_at": now_iso,
         "stats": {
-            "total_singles": singles,
-            "total_albums": albums,
+            "total_singles": singles, "total_albums": albums,
             "mode": MODE,
+            "crawl": crawl,
         },
         "sections": sections_out,
     }
-
     (DATA_DIR / "songs.json").write_text(
         json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
 
 def export_search_index(conn, now_iso: str):
-    """Write data/search.json — slim per-item entries for client-side search."""
     rows = conn.execute(
-        "SELECT kind, id, title, artist, music, label, released "
-        "FROM items "
-        "WHERE has_detail=1 OR title != '' "
-        "ORDER BY first_seen_at DESC"
+        "SELECT kind, id, title, artist, music, label, released FROM items "
+        "WHERE title != '' ORDER BY first_seen_at DESC"
     ).fetchall()
-
-    items = []
-    for r in rows:
-        items.append({
-            "k": r["kind"][0],     # 's' or 'a' to keep payload tiny
-            "i": r["id"],
-            "t": r["title"]  or "",
-            "a": r["artist"] or "",
-            "m": r["music"]  or "",
-            "l": r["label"]  or "",
+    items = [
+        {
+            "k": r["kind"][0], "i": r["id"],
+            "t": r["title"] or "", "a": r["artist"] or "",
+            "m": r["music"] or "", "l": r["label"] or "",
             "r": r["released"] or "",
-        })
-
-    output = {
-        "generated_at": now_iso,
-        "count": len(items),
-        "items": items,
-    }
+        }
+        for r in rows
+    ]
     (DATA_DIR / "search.json").write_text(
-        json.dumps(output, ensure_ascii=False), encoding="utf-8"
+        json.dumps({"generated_at": now_iso, "count": len(items), "items": items},
+                   ensure_ascii=False), encoding="utf-8"
     )
     print(f"[export] search.json: {len(items)} items")
 
 
 def export_item_files(conn):
-    """Write data/items/{kind}-{id}.json for every detailed item.
-
-    Skip files that already exist and whose item hasn't been re-fetched
-    since (using detail_fetched_at as a marker). This keeps the rewrite
-    set small per run.
-    """
     ITEMS_DIR.mkdir(parents=True, exist_ok=True)
-
-    rows = conn.execute(
-        "SELECT * FROM items WHERE has_detail=1"
-    ).fetchall()
-
+    rows = conn.execute("SELECT * FROM items WHERE has_detail=1").fetchall()
     written = 0
     for r in rows:
         path = ITEMS_DIR / f"{r['kind']}-{r['id']}.json"
         if path.exists():
-            # Only rewrite if the detail was re-fetched more recently than
-            # the file was written.
             try:
                 file_mtime = path.stat().st_mtime
                 fetched_ts = _iso_timestamp(r["detail_fetched_at"])
@@ -815,31 +884,107 @@ def export_item_files(conn):
                     continue
             except Exception:
                 pass
-
         d = row_to_item_dict(r, slim=False)
         path.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
         written += 1
-
-    print(f"[export] item files: {written} written, {len(rows)} total exist on disk")
+    print(f"[export] item files: {written} written, {len(rows)} total")
 
 
 # ===========================================================================
-# Mode selection
+# Crawl-state helpers (for deep mode)
 # ===========================================================================
 
-def resolve_mode(conn) -> str:
-    if MODE in ("full", "yes"):
-        return "full"
-    if MODE in ("recent", "no"):
-        return "recent"
-    # auto
-    singles, albums = db_counts(conn)
-    if singles < AUTO_FULL_IF_SINGLES_BELOW or albums < AUTO_FULL_IF_ALBUMS_BELOW:
-        print(f"[mode] auto -> full  (singles={singles}/{AUTO_FULL_IF_SINGLES_BELOW}, "
-              f"albums={albums}/{AUTO_FULL_IF_ALBUMS_BELOW})")
-        return "full"
-    print(f"[mode] auto -> recent  (singles={singles}, albums={albums})")
-    return "recent"
+def get_crawl_state(conn, section_id: str) -> sqlite3.Row | None:
+    return conn.execute(
+        "SELECT * FROM crawl_state WHERE section_id=?", (section_id,)
+    ).fetchone()
+
+
+def update_crawl_state(conn, section_id: str, next_page: int,
+                       pages_walked_delta: int, is_complete: bool,
+                       now_iso: str):
+    row = get_crawl_state(conn, section_id)
+    if row:
+        conn.execute(
+            "UPDATE crawl_state SET next_page=?, pages_walked=pages_walked+?, "
+            "is_complete=?, last_session_at=? WHERE section_id=?",
+            (next_page, pages_walked_delta, 1 if is_complete else 0, now_iso, section_id),
+        )
+    else:
+        conn.execute(
+            "INSERT INTO crawl_state (section_id, next_page, pages_walked, "
+            "is_complete, last_session_at) VALUES (?, ?, ?, ?, ?)",
+            (section_id, next_page, pages_walked_delta, 1 if is_complete else 0, now_iso),
+        )
+
+
+def reset_crawl_state(conn):
+    conn.execute("UPDATE crawl_state SET next_page=1, is_complete=0")
+    conn.execute("UPDATE crawl_state SET pages_walked=0")
+    print("[deep] crawl_state reset to page 1, is_complete=0")
+
+
+# ===========================================================================
+# Modes
+# ===========================================================================
+
+def run_fast(conn, now_iso: str):
+    """Fast pass: first FAST_PAGES of paginated sections + the chart."""
+    print(f"[fast] walking first {FAST_PAGES} pages per paginated section")
+    for section in SECTIONS:
+        print(f"\n[section] {section['title']}  ({section['id']})")
+        if section["paginate"]:
+            walked, new, _ = walk_pages(conn, section, 1, FAST_PAGES, now_iso)
+            print(f"  walked {walked} pages, +{new} new items")
+        else:
+            capture_top_chart(conn, section, now_iso)
+            print(f"  chart refreshed")
+
+
+def run_deep(conn, now_iso: str):
+    """Deep pass: continue walking unseen pages of paginated sections."""
+    print(f"[deep] session size: {PAGES_PER_SESSION} pages per section")
+
+    if RESET_DEEP:
+        reset_crawl_state(conn)
+        conn.commit()
+
+    any_work = False
+
+    for section in DEEP_SECTIONS:
+        print(f"\n[section] {section['title']}  ({section['id']})")
+        state = get_crawl_state(conn, section["id"])
+        if state and state["is_complete"]:
+            print(f"  already complete (walked {state['pages_walked']} pages). "
+                  f"Skipping. Set RESET_DEEP=yes to redo.")
+            continue
+
+        start_page = state["next_page"] if state else 1
+        # The fast scraper handles pages 1..FAST_PAGES. Deep scraper picks up
+        # from page FAST_PAGES+1 the first time, then continues from wherever
+        # last session left off.
+        if start_page <= FAST_PAGES:
+            start_page = FAST_PAGES + 1
+            print(f"  bumping start to {start_page} (fast scraper handles 1..{FAST_PAGES})")
+
+        end_page = start_page + PAGES_PER_SESSION
+        print(f"  walking pages {start_page}..{end_page - 1}")
+
+        walked, new, hit_end = walk_pages(conn, section, start_page,
+                                          PAGES_PER_SESSION, now_iso)
+        any_work = True
+        next_p = start_page + walked
+        complete = hit_end or walked == 0
+
+        update_crawl_state(conn, section["id"], next_p, walked, complete, now_iso)
+        conn.commit()
+
+        print(f"  walked {walked} pages, +{new} new items. "
+              f"next session resumes at page {next_p}. "
+              f"complete={complete}")
+
+    if not any_work:
+        print("\n[deep] nothing to do — all sections marked complete.")
 
 
 # ===========================================================================
@@ -849,52 +994,49 @@ def resolve_mode(conn) -> str:
 def main() -> int:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = db_open()
-
     now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    mode = resolve_mode(conn)
 
-    print(f"[start] DEEP_SCRAPE={MODE!r} resolved -> {mode}")
+    print(f"[start] MODE={MODE!r}")
     singles_before, albums_before = db_counts(conn)
-    print(f"        library size: singles={singles_before}  albums={albums_before}")
+    print(f"        library: singles={singles_before} albums={albums_before}")
 
-    # 1) Walk listings, discovering new items.
-    for section in SECTIONS:
-        print(f"\n[section] {section['title']}")
-        pages, new = walk_section(conn, section, mode, now_iso)
-        conn.commit()
-        print(f"  walked {pages} pages, added {new} new items")
+    if MODE == "fast":
+        run_fast(conn, now_iso)
+    elif MODE == "deep":
+        run_deep(conn, now_iso)
+    else:
+        print(f"!! unknown MODE {MODE!r}; must be 'fast' or 'deep'", file=sys.stderr)
+        return 2
 
-        # For ranked charts, also capture the position list.
-        if not section["paginate"]:
-            record_top_chart_order(conn, section, now_iso)
-            conn.commit()
+    # Both modes do detail fetching and export.
+    fetch_details_budgeted(conn, MAX_DETAIL_FETCHES, now_iso)
 
-    # 2) Fetch detail pages up to budget.
-    fetched = fetch_details_budgeted(conn, MAX_DETAIL_FETCHES_PER_RUN, now_iso)
-
-    # 3) Export site artifacts.
     print(f"\n[export]")
     export_homepage(conn, now_iso)
     export_search_index(conn, now_iso)
     export_item_files(conn)
 
-    # 4) Update meta.
-    db_set_meta(conn, "last_run_at", now_iso)
-    db_set_meta(conn, "last_mode", mode)
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES ('last_run_at', ?) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (now_iso,),
+    )
+    conn.execute(
+        "INSERT INTO meta(key, value) VALUES ('last_mode', ?) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        (MODE,),
+    )
     conn.commit()
 
     singles_after, albums_after = db_counts(conn)
     pending = conn.execute(
-        "SELECT COUNT(*) AS n FROM items WHERE has_detail=0"
+        "SELECT COUNT(*) n FROM items WHERE has_detail=0"
     ).fetchone()["n"]
-
-    print(f"\n[done]")
-    print(f"  singles: {singles_before} -> {singles_after}  (+{singles_after - singles_before})")
-    print(f"  albums:  {albums_before} -> {albums_after}  (+{albums_after - albums_before})")
-    print(f"  detail-fetches this run: {fetched}")
-    print(f"  items still pending detail-fetch: {pending}")
-    if pending > 0:
-        print(f"  -> next run will continue fetching {pending} pending detail pages.")
+    print(f"\n[done] singles {singles_before} -> {singles_after}  "
+          f"(+{singles_after - singles_before})")
+    print(f"       albums  {albums_before} -> {albums_after}  "
+          f"(+{albums_after - albums_before})")
+    print(f"       items pending detail fetch: {pending}")
     return 0
 
 
