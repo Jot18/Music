@@ -2,19 +2,27 @@ name: Scrape & Deploy
 
 on:
   schedule:
-    # Every 4 hours at minute 0 (UTC).
+    # Every 4 hours.
     - cron: '0 */4 * * *'
   workflow_dispatch:
     inputs:
-      deep_scrape:
-        description: 'Walk every paginated page (slow; use sparingly)'
+      mode:
+        description: 'Scrape mode'
         required: false
         default: 'auto'
         type: choice
         options:
-          - auto       # deep if archive is empty, else incremental (default)
-          - yes        # force full deep walk
-          - no         # force incremental even on empty archive
+          - auto          # full if library small, otherwise recent
+          - full          # walk every page (slow; spans multiple runs)
+          - recent        # walk only the first N pages of each section
+      recent_pages:
+        description: 'Pages per section when mode=recent (default 5)'
+        required: false
+        default: '5'
+      max_details:
+        description: 'Max detail-page fetches this run (default 800)'
+        required: false
+        default: '800'
   push:
     branches: [main]
     paths:
@@ -35,6 +43,7 @@ jobs:
   scrape:
     name: Scrape source
     runs-on: ubuntu-latest
+    timeout-minutes: 350    # within Actions' 6-hour single-job cap
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,20 +60,21 @@ jobs:
 
       - name: Run scraper
         env:
-          # On manual dispatch: use the chosen mode. On schedule/push: 'auto'.
-          DEEP_SCRAPE: ${{ github.event.inputs.deep_scrape || 'auto' }}
+          DEEP_SCRAPE:        ${{ github.event.inputs.mode         || 'auto' }}
+          RECENT_PAGES:       ${{ github.event.inputs.recent_pages || '5' }}
+          MAX_DETAIL_FETCHES: ${{ github.event.inputs.max_details  || '800' }}
         run: python scraper/scrape.py
 
       - name: Commit updated data
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -n "$(git status --porcelain data/songs.json)" ]]; then
-            git add data/songs.json
-            git commit -m "data: refresh songs.json ($(date -u +'%Y-%m-%d %H:%M UTC'))"
-            git push
-          else
+          git add data/
+          if git diff --cached --quiet; then
             echo "No changes to commit."
+          else
+            git commit -m "data: refresh ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+            git push
           fi
 
   deploy:
@@ -82,10 +92,16 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site
+          mkdir -p _site/data/items
           cp -r site/* _site/
-          mkdir -p _site/data
-          cp data/songs.json _site/data/songs.json
+          # Ship the small homepage feed and the search index.
+          cp data/songs.json   _site/data/songs.json
+          cp data/search.json  _site/data/search.json
+          # Ship per-item detail JSONs for on-demand loading.
+          # We don't ship library.db — the site doesn't need it.
+          if [ -d data/items ]; then
+            cp -r data/items/* _site/data/items/ 2>/dev/null || true
+          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Saadi Awaaz · Punjabi Music</title>
-<meta name="description" content="Punjabi music — new singles, new albums, top singles." />
+<meta name="description" content="Punjabi music — new singles, new albums, top singles, full searchable library." />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23120a04'/><circle cx='32' cy='32' r='14' fill='none' stroke='%23f0b323' stroke-width='3'/><circle cx='32' cy='32' r='3' fill='%23f0b323'/></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,6 +38,20 @@
     </div>
   </div>
   <div class="masthead__hairline"></div>
+
+  <div class="searchbar" role="search">
+    <svg class="searchbar__icon" viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
+      <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <input id="searchInput" type="search" class="searchbar__input"
+           placeholder="Search artists, songs, albums, music directors, labels…"
+           aria-label="Search library"
+           autocomplete="off" autocorrect="off" spellcheck="false" />
+    <kbd class="searchbar__kbd">⌘K</kbd>
+    <button id="searchClear" class="searchbar__clear" aria-label="Clear search" hidden>&times;</button>
+  </div>
+
   <nav class="sectionnav" aria-label="Sections">
     <a href="#new_singles" class="sectionnav__link">New Singles</a>
     <a href="#new_albums"  class="sectionnav__link">New Albums</a>

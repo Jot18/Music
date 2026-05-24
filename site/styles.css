@@ -164,6 +164,77 @@ a { color: inherit; }
   background: rgba(240,179,35,.05);
 }
 
+/* ============================================================ Searchbar */
+
+.searchbar {
+  position: relative;
+  margin: 22px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--bg-2);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  transition: border-color .2s ease, background .2s ease;
+}
+.searchbar:focus-within {
+  border-color: var(--marigold);
+  background: rgba(240,179,35,.04);
+}
+.searchbar__icon {
+  flex-shrink: 0;
+  color: var(--ink-mute);
+}
+.searchbar:focus-within .searchbar__icon { color: var(--marigold); }
+.searchbar__input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--cream);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 300;
+  min-width: 0;
+}
+.searchbar__input::placeholder { color: var(--ink-faint); }
+.searchbar__input::-webkit-search-cancel-button { display: none; }
+.searchbar__kbd {
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 3px 6px;
+  background: rgba(0,0,0,.2);
+}
+.is-touch .searchbar__kbd { display: none; }
+.searchbar:focus-within .searchbar__kbd { display: none; }
+
+.searchbar__clear {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  color: var(--ink-mute);
+  font-size: 22px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: all .15s ease;
+}
+.searchbar__clear:hover { background: rgba(245,233,210,.08); color: var(--cream); }
+
+/* When searching, fade the section nav out a bit. */
+.is-searching .sectionnav { opacity: .55; }
+.is-searching #app > .section:not(#searchResults) { opacity: .35; pointer-events: none; }
+
 /* ============================================================ Loading */
 
 .loading {
@@ -414,10 +485,17 @@ main {
   background: var(--bg-3);
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .sheet__cover {
-  width: 100%; height: 100%;
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  /* Use 'contain' so the full cover art is always visible, even when its
+     aspect ratio doesn't match the slot. This avoids cropping the artist
+     out of the frame on portrait-aspect covers. */
+  object-fit: contain;
   display: block;
 }
 
@@ -702,6 +780,10 @@ main {
   .brand__sub { display: none; }
   .masthead__meta { font-size: 10px; }
   .masthead__hairline { margin-top: 14px; }
+
+  .searchbar { padding: 10px 14px; margin-top: 14px; gap: 8px; border-radius: 12px; }
+  .searchbar__input { font-size: 14px; }
+  .searchbar__kbd { display: none; }
 
   .sectionnav {
     padding: 14px 0 0;

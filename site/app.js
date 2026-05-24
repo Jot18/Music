@@ -1,9 +1,5 @@
 /* ============================================================
-   Saadi Awaaz · App logic
-   - Fetches data/songs.json
-   - Renders the four sections + searchable archive
-   - Detail sheet on cover click
-   - Persistent mini-player + full-screen now-playing overlay (mobile)
+   Saadi Awaaz · App logic v6
    ============================================================ */
 
 const STATE = {
@@ -11,26 +7,24 @@ const STATE = {
   playlist: [],
   currentIndex: -1,
   currentItem: null,
+  // Lazy-loaded search index. Loaded on first focus of the search box.
+  searchIndex: null,
+  searchLoading: false,
 };
 
-// ------- Touch / mobile detection ---------------------------------------
+// ---------------- Touch detection -------------------------------------------
 
-/** Returns true on touch-first devices (phones, tablets). */
 function isTouchDevice() {
-  // Coarse pointer is the most reliable signal.
   if (window.matchMedia("(pointer: coarse)").matches) return true;
-  // Fallback: UA sniff for iPad-on-desktop-mode quirks.
   if (/iPad|iPhone|iPod|Android/i.test(navigator.userAgent)) return true;
-  // navigator.maxTouchPoints catches iPadOS reporting as Mac.
   return navigator.maxTouchPoints > 1;
 }
-
 if (isTouchDevice()) {
   document.documentElement.classList.add("is-touch");
   document.body.classList.add("is-touch");
 }
 
-// ------- Helpers --------------------------------------------------------
+// ---------------- Helpers ---------------------------------------------------
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
@@ -43,28 +37,22 @@ function fmtTime(secs) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function safeText(v) {
-  return (v == null || v === "") ? "—" : String(v);
-}
+function safeText(v) { return (v == null || v === "") ? "—" : String(v); }
 
-// Some source URLs have raw spaces — encode them so browsers fetch correctly.
 function safeUrl(u) {
   if (!u) return "";
   try { return encodeURI(u); } catch { return u; }
 }
 
-// Build a clean download filename, stripping any source-identifying tokens
-// and characters that are illegal on most filesystems.
 function sanitizeFilename(s) {
   if (!s) return "track";
   return s
-    .replace(/\(?\s*DJJOhAL[.\s]*Com\s*\)?/gi, "")  // strip "(DJJOhAL.Com)" / "DJJOhAL.Com"
-    .replace(/\bdjjohal\b/gi, "")                    // any remaining mention
-    .replace(/[<>:"/\\|?*\x00-\x1f]+/g, "")          // illegal FS chars
-    .replace(/\s+/g, " ")                            // collapse whitespace
-    .replace(/^[\s\-_.]+|[\s\-_.]+$/g, "")           // trim weird boundary chars
-    .slice(0, 120)                                   // sane length
-    || "track";
+    .replace(/\(?\s*DJJOhAL[.\s]*Com\s*\)?/gi, "")
+    .replace(/\bdjjohal\b/gi, "")
+    .replace(/[<>:"/\\|?*\x00-\x1f]+/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\-_.]+|[\s\-_.]+$/g, "")
+    .slice(0, 120) || "track";
 }
 
 function el(tag, attrs = {}, ...children) {
@@ -82,13 +70,36 @@ function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-// ------- Render -----------------------------------------------------------
+function debounce(fn, ms) {
+  let h;
+  return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); };
+}
+
+// In-memory cache of fully-detailed items keyed by `${kind}:${id}`.
+const ITEM_CACHE = new Map();
+
+async function loadItemDetail(kind, id) {
+  const key = `${kind}:${id}`;
+  if (ITEM_CACHE.has(key)) return ITEM_CACHE.get(key);
+
+  try {
+    const res = await fetch(`data/items/${kind}-${id}.json`, { cache: "force-cache" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const item = await res.json();
+    ITEM_CACHE.set(key, item);
+    return item;
+  } catch (err) {
+    console.warn(`No detail file for ${key}:`, err);
+    return null;
+  }
+}
+
+// ---------------- Rendering ------------------------------------------------
 
 function renderSection(section) {
   const isChart = section.id.startsWith("top_");
   const isAlbum = section.kind === "album";
 
-  // Stylized title with marigold accent on key word.
   let titleHtml;
   switch (section.id) {
     case "new_singles":  titleHtml = `New <em>Singles</em>`; break;
@@ -99,14 +110,15 @@ function renderSection(section) {
 
   const head = el("div", { class: "section__head" },
     el("h2", { class: "section__title", html: titleHtml }),
-    el("span", { class: "section__count" }, `${section.items.length} ${isAlbum ? "releases" : "tracks"}`)
+    el("span", { class: "section__count" },
+       `${section.items.length} ${isAlbum ? "releases" : "tracks"}`)
   );
 
   const grid = el("div", { class: "grid" });
 
   if (section.items.length === 0) {
     grid.append(el("div", { class: "empty" },
-      "Waiting for the next scrape… check back soon."));
+      "Waiting for the next scrape…"));
   }
 
   section.items.forEach((item, idx) => {
@@ -116,38 +128,6 @@ function renderSection(section) {
   return el("section", { class: "section", id: section.id }, head, grid);
 }
 
-function renderAll(data) {
-  const app = $("#app");
-  app.innerHTML = "";
-
-  if (data.generated_at) {
-    const d = new Date(data.generated_at);
-    if (!isNaN(d.getTime())) {
-      const opts = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
-      $("#lastUpdated").textContent = `updated ${d.toLocaleString(undefined, opts)}`;
-    }
-  }
-
-  // Build flat playlist from the three sections only.
-  const seen = new Set();
-  STATE.playlist = [];
-  for (const section of data.sections || []) {
-    for (const item of section.items || []) {
-      const k = `${item.kind}:${item.id}`;
-      if (seen.has(k)) continue;
-      seen.add(k);
-      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
-        STATE.playlist.push(item);
-      }
-    }
-  }
-
-  for (const section of data.sections) {
-    app.append(renderSection(section));
-  }
-}
-
-// Extracted from renderSection so it can be reused by the archive.
 function buildCard(item, isChart, idx) {
   const cover = safeUrl(item.cover) ||
     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><rect width='1' height='1' fill='%23251608'/></svg>";
@@ -166,7 +146,12 @@ function buildCard(item, isChart, idx) {
     el("button", {
       class: "card__play",
       "aria-label": `Play ${item.title}`,
-      onclick: (e) => { e.stopPropagation(); playItem(item); },
+      onclick: async (e) => {
+        e.stopPropagation();
+        // Need the full item record to play (need mp3 URLs).
+        const full = await ensureFullItem(item);
+        if (full) playItem(full);
+      },
       html: `<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
     })
   );
@@ -184,9 +169,76 @@ function buildCard(item, isChart, idx) {
   );
 }
 
-// ------- Detail sheet -----------------------------------------------------
+/**
+ * Make sure we have a full item (with mp3 URLs, music director, lyrics, etc).
+ * Items from the live feeds already have everything. Items from search may be
+ * the slim version — those get hydrated on demand from /data/items/{k}-{id}.json.
+ */
+async function ensureFullItem(item) {
+  // If it has mp3 stream URLs, it's already full.
+  if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
+    return item;
+  }
+  const detail = await loadItemDetail(item.kind, item.id);
+  return detail || item;
+}
 
-function openSheet(item) {
+function renderAll(data) {
+  const app = $("#app");
+  app.innerHTML = "";
+
+  if (data.generated_at) {
+    const d = new Date(data.generated_at);
+    if (!isNaN(d.getTime())) {
+      const opts = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+      const total = (data.stats?.total_singles ?? 0) + (data.stats?.total_albums ?? 0);
+      $("#lastUpdated").textContent =
+        `updated ${d.toLocaleString(undefined, opts)} · library: ${total.toLocaleString()}`;
+    }
+  }
+
+  STATE.sections = data.sections || [];
+
+  // Build flat playlist from the live feeds for prev/next.
+  const seen = new Set();
+  STATE.playlist = [];
+  for (const section of STATE.sections) {
+    for (const item of section.items || []) {
+      const k = `${item.kind}:${item.id}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
+        STATE.playlist.push(item);
+        ITEM_CACHE.set(k, item);   // cache the full record
+      }
+    }
+  }
+
+  // Make sure the search-results container exists even before search runs.
+  app.append(el("section", { class: "section", id: "searchResults", hidden: "" }));
+
+  for (const section of STATE.sections) {
+    app.append(renderSection(section));
+  }
+}
+
+// ---------------- Detail sheet ---------------------------------------------
+
+async function openSheet(item) {
+  // Prefill with whatever the card already has (so the sheet opens instantly),
+  // then hydrate from data/items/{kind}-{id}.json if needed.
+  fillSheet(item);
+  $("#detailSheet").showModal();
+
+  if (!item.mp3 || !(item.mp3.stream || item.mp3.kbps128)) {
+    const full = await loadItemDetail(item.kind, item.id);
+    if (full && $("#detailSheet").open) {
+      fillSheet(full);
+    }
+  }
+}
+
+function fillSheet(item) {
   $("#sheetCover").src = safeUrl(item.cover) || "";
   $("#sheetCover").alt = `${item.title} cover`;
   $("#sheetKicker").textContent = item.kind === "album" ? "Album / EP" : "Single Track";
@@ -208,17 +260,15 @@ function openSheet(item) {
     facts.append(el("dd", {}, safeText(v)));
   }
 
-  // Play button
-  $("#sheetPlayBtn").onclick = () => {
-    playItem(item);
+  $("#sheetPlayBtn").onclick = async () => {
+    const full = await ensureFullItem(item);
+    if (full) playItem(full);
     closeSheet();
   };
   const hasStream = item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48);
   $("#sheetPlayBtn").disabled = !hasStream;
   $("#sheetPlayBtn").style.opacity = hasStream ? "1" : ".4";
 
-  // Downloads — with sanitized filenames (strip any source-identifying
-  // text from what the browser saves).
   const dl = $("#sheetDownloads");
   dl.innerHTML = "";
   const cleanName = sanitizeFilename(`${item.artist || ""} - ${item.title || "track"}`.trim());
@@ -242,8 +292,6 @@ function openSheet(item) {
       }, el("span", {}, label), el("span", {}, tag)));
     }
   }
-
-  $("#detailSheet").showModal();
 }
 
 function closeSheet() {
@@ -251,7 +299,7 @@ function closeSheet() {
   if (dlg.open) dlg.close();
 }
 
-// ------- Player -----------------------------------------------------------
+// ---------------- Player ----------------------------------------------------
 
 const audio = $("#audio");
 
@@ -265,7 +313,7 @@ function playItem(item) {
   STATE.currentIndex = STATE.playlist.findIndex(p => p.id === item.id && p.kind === item.kind);
   STATE.currentItem = item;
 
-  // First play: reveal the player and reserve space at the bottom of the page.
+  // Reveal player + reserve bottom space.
   $("#player").hidden = false;
   document.body.classList.add("has-player");
 
@@ -274,15 +322,12 @@ function playItem(item) {
   $("#playerTitle").textContent = item.title || "Untitled";
   $("#playerArtist").textContent = item.artist || "";
 
-  // Sync now-playing overlay too (so if it's already open, it updates).
   $("#npCover").src = cover;
   $("#npTitle").textContent = item.title || "Untitled";
   $("#npArtist").textContent = item.artist || "";
 
   audio.src = safeUrl(stream);
-  audio.play().catch(err => {
-    console.warn("Playback failed:", err);
-  });
+  audio.play().catch(err => console.warn("Playback failed:", err));
 }
 
 function togglePlay() {
@@ -291,24 +336,25 @@ function togglePlay() {
   else audio.pause();
 }
 
-function playPrev() {
+async function playPrev() {
   if (STATE.playlist.length === 0) return;
   let i = STATE.currentIndex - 1;
   if (i < 0) i = STATE.playlist.length - 1;
-  playItem(STATE.playlist[i]);
+  const full = await ensureFullItem(STATE.playlist[i]);
+  if (full) playItem(full);
 }
 
-function playNext() {
+async function playNext() {
   if (STATE.playlist.length === 0) return;
   let i = STATE.currentIndex + 1;
   if (i >= STATE.playlist.length) i = 0;
-  playItem(STATE.playlist[i]);
+  const full = await ensureFullItem(STATE.playlist[i]);
+  if (full) playItem(full);
 }
 
-// Player event wiring — sync both the mini-bar and the now-playing overlay.
 function setPlayingUI(isPlaying) {
-  $("#iconPlay").style.display   = isPlaying ? "none" : "";
-  $("#iconPause").style.display  = isPlaying ? "" : "none";
+  $("#iconPlay").style.display    = isPlaying ? "none" : "";
+  $("#iconPause").style.display   = isPlaying ? "" : "none";
   $("#npIconPlay").style.display  = isPlaying ? "none" : "";
   $("#npIconPause").style.display = isPlaying ? "" : "none";
 }
@@ -322,8 +368,8 @@ audio.addEventListener("timeupdate", () => {
   const tot = audio.duration || 0;
   const curStr = fmtTime(cur);
   const totStr = fmtTime(tot);
-  $("#curTime").textContent = curStr;
-  $("#totTime").textContent = totStr;
+  $("#curTime").textContent   = curStr;
+  $("#totTime").textContent   = totStr;
   $("#npCurTime").textContent = curStr;
   $("#npTotTime").textContent = totStr;
   const pct = tot > 0 ? (cur / tot) * 100 : 0;
@@ -342,7 +388,6 @@ $("#btnClose").addEventListener("click", () => {
   closeNowPlaying();
 });
 
-// Now-playing controls mirror the mini-bar
 $("#npPlay").addEventListener("click", togglePlay);
 $("#npPrev").addEventListener("click", playPrev);
 $("#npNext").addEventListener("click", playNext);
@@ -353,7 +398,6 @@ $("#npSource").addEventListener("click", () => {
   }
 });
 
-// Click on scrub bar to seek (works on both bars)
 function seekFromEvent(e, scrubEl) {
   if (!audio.duration) return;
   const r = scrubEl.getBoundingClientRect();
@@ -364,14 +408,13 @@ function seekFromEvent(e, scrubEl) {
 $("#scrub").addEventListener("click",   (e) => seekFromEvent(e, e.currentTarget));
 $("#npScrub").addEventListener("click", (e) => seekFromEvent(e, e.currentTarget));
 
-// ------- Now-playing overlay (mobile expanded view) ---------------------
+// ---------------- Now-playing overlay --------------------------------------
 
 const nowPlaying = $("#nowPlaying");
 
 function openNowPlaying() {
   if (!STATE.currentItem) return;
-  // Refresh content in case the track changed while collapsed.
-  $("#npCover").src    = safeUrl(STATE.currentItem.cover) || "";
+  $("#npCover").src   = safeUrl(STATE.currentItem.cover) || "";
   $("#npTitle").textContent  = STATE.currentItem.title || "Untitled";
   $("#npArtist").textContent = STATE.currentItem.artist || "";
   nowPlaying.hidden = false;
@@ -383,28 +426,21 @@ function openNowPlaying() {
 function closeNowPlaying() {
   nowPlaying.classList.remove("is-open");
   nowPlaying.setAttribute("aria-hidden", "true");
-  // Wait for the animation to end before fully hiding.
   setTimeout(() => { nowPlaying.hidden = true; }, 320);
   document.body.style.overflow = "";
 }
 
 $("#btnExpand").addEventListener("click", () => {
-  // Desktop: clicking the title area in the mini-bar shouldn't open the
-  // full-screen overlay. The overlay is purely a mobile/tablet pattern.
   if (!document.body.classList.contains("is-touch")) return;
   openNowPlaying();
 });
 $("#btnCollapse").addEventListener("click", closeNowPlaying);
 
-// Swipe-down to dismiss the now-playing overlay (touch only).
 (function setupSwipeDismiss() {
   let startY = null;
   let dragging = false;
-
   const onStart = (e) => {
     const y = e.touches ? e.touches[0].clientY : e.clientY;
-    // Only initiate drag from the top portion (handle + first 120px),
-    // so users can still interact with controls below.
     const rect = nowPlaying.getBoundingClientRect();
     if (y - rect.top > 140) return;
     startY = y;
@@ -414,9 +450,7 @@ $("#btnCollapse").addEventListener("click", closeNowPlaying);
     if (!dragging || startY == null) return;
     const y = e.touches ? e.touches[0].clientY : e.clientY;
     const dy = y - startY;
-    if (dy > 0) {
-      nowPlaying.style.transform = `translateY(${dy}px)`;
-    }
+    if (dy > 0) nowPlaying.style.transform = `translateY(${dy}px)`;
   };
   const onEnd = (e) => {
     if (!dragging || startY == null) return;
@@ -437,34 +471,141 @@ $("#btnCollapse").addEventListener("click", closeNowPlaying);
     startY = null;
     dragging = false;
   };
-
   nowPlaying.addEventListener("touchstart", onStart, { passive: true });
   nowPlaying.addEventListener("touchmove",  onMove,  { passive: true });
   nowPlaying.addEventListener("touchend",   onEnd);
 })();
 
-// Detail sheet close handlers
-$$('[data-close]').forEach(b => b.addEventListener("click", closeSheet));
-$("#detailSheet").addEventListener("click", (e) => {
-  // click on backdrop closes
-  const rect = $("#detailSheet").getBoundingClientRect();
-  const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
-                 e.clientY >= rect.top && e.clientY <= rect.bottom;
-  if (!inside) closeSheet();
+// ---------------- Search ---------------------------------------------------
+
+async function ensureSearchIndex() {
+  if (STATE.searchIndex) return STATE.searchIndex;
+  if (STATE.searchLoading) return null;
+  STATE.searchLoading = true;
+  try {
+    const res = await fetch(`data/search.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    STATE.searchIndex = data.items || [];
+  } catch (e) {
+    console.warn("Search index unavailable:", e);
+    STATE.searchIndex = [];
+  } finally {
+    STATE.searchLoading = false;
+  }
+  return STATE.searchIndex;
+}
+
+function expandSlim(slim) {
+  // Convert slim shape {k,i,t,a,m,l,r} -> standard item shape.
+  return {
+    kind:  slim.k === "a" ? "album" : "single",
+    id:    slim.i,
+    title: slim.t || "",
+    artist:slim.a || "",
+    music: slim.m || "",
+    label: slim.l || "",
+    released: slim.r || "",
+    cover: "",   // covers are loaded on demand
+    mp3:   { stream: "", kbps320: "", kbps128: "", kbps48: "", zip320: "", zip128: "" },
+  };
+}
+
+const searchInput = $("#searchInput");
+const searchClear = $("#searchClear");
+const resultsHost = () => $("#searchResults");
+
+function setSearchUI(active) {
+  document.body.classList.toggle("is-searching", active);
+  searchClear.hidden = !active;
+}
+
+async function doSearch(q) {
+  q = (q || "").trim().toLowerCase();
+  const host = resultsHost();
+  if (!host) return;
+
+  if (!q) {
+    setSearchUI(false);
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+
+  setSearchUI(true);
+  host.hidden = false;
+  host.innerHTML = "";
+
+  const head = el("div", { class: "section__head" },
+    el("h2", { class: "section__title", html: `Search · <em>“${escapeHtml(q)}”</em>` }),
+    el("span", { class: "section__count" }, "Searching…"),
+  );
+  host.append(head);
+
+  const idx = await ensureSearchIndex();
+  if (!idx) return;
+
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const matches = [];
+  for (const s of idx) {
+    const hay = `${s.t} ${s.a} ${s.m} ${s.l} ${s.r}`.toLowerCase();
+    if (tokens.every(t => hay.includes(t))) {
+      matches.push(s);
+      if (matches.length >= 200) break;
+    }
+  }
+
+  head.querySelector(".section__count").textContent =
+    `${matches.length}${matches.length >= 200 ? "+" : ""} match${matches.length === 1 ? "" : "es"}`;
+
+  const grid = el("div", { class: "grid" });
+  if (matches.length === 0) {
+    grid.append(el("div", { class: "empty" }, "No matches in the library."));
+  } else {
+    for (const s of matches) {
+      grid.append(buildCard(expandSlim(s), false, null));
+    }
+  }
+  host.append(grid);
+
+  // Scroll into view.
+  host.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+const doSearchDebounced = debounce(doSearch, 180);
+
+searchInput.addEventListener("focus", ensureSearchIndex);
+searchInput.addEventListener("input", (e) => doSearchDebounced(e.target.value));
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  doSearch("");
+  searchInput.focus();
 });
 
-// Keyboard: space toggles play
+// Cmd/Ctrl+K to focus search.
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+// Other keyboard: space toggles play, Esc closes overlays/sheet.
 document.addEventListener("keydown", (e) => {
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
   if (e.code === "Space" && audio.src) {
     e.preventDefault();
     togglePlay();
   } else if (e.code === "Escape") {
-    if (nowPlaying.classList.contains("is-open")) {
-      closeNowPlaying();
-    } else {
-      closeSheet();
-    }
+    if (nowPlaying.classList.contains("is-open")) closeNowPlaying();
+    else closeSheet();
   } else if (e.code === "ArrowRight" && e.altKey) {
     playNext();
   } else if (e.code === "ArrowLeft" && e.altKey) {
@@ -472,11 +613,19 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ------- Boot -------------------------------------------------------------
+// Detail-sheet close handlers
+$$('[data-close]').forEach(b => b.addEventListener("click", closeSheet));
+$("#detailSheet").addEventListener("click", (e) => {
+  const rect = $("#detailSheet").getBoundingClientRect();
+  const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
+                 e.clientY >= rect.top && e.clientY <= rect.bottom;
+  if (!inside) closeSheet();
+});
+
+// ---------------- Boot -----------------------------------------------------
 
 async function boot() {
   try {
-    // cache-bust so GH Pages serves the latest after each scrape
     const res = await fetch(`data/songs.json?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -485,10 +634,8 @@ async function boot() {
     console.error(err);
     $("#app").innerHTML = `
       <div class="empty" style="margin-top:60px">
-        Couldn't load data/songs.json — ${err.message}.<br/>
-        If this is the first deploy, wait for the scheduled scrape (or run the workflow manually).
+        Couldn't load data — ${err.message}.
       </div>`;
   }
 }
-
 boot();
