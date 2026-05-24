@@ -27,9 +27,10 @@ async function isAuthenticated() {
 }
 
 function showGate(show) {
-  const gate = document.getElementById("loginGate");
-  if (!gate) return;
-  gate.classList.toggle("is-hidden", !show);
+  const gate  = document.getElementById("loginGate");
+  const shell = document.getElementById("appShell");
+  if (gate)  gate.hidden  = !show;     // gate visible when show=true
+  if (shell) shell.hidden = show;      // app shell hidden when gate is up
   // Prevent scroll behind the gate.
   document.body.style.overflow = show ? "hidden" : "";
 }
@@ -197,6 +198,7 @@ function renderSection(section) {
     case "new_singles":  titleHtml = `New <em>Singles</em>`; break;
     case "new_albums":   titleHtml = `New <em>Albums</em> &amp; EPs`; break;
     case "top_singles":  titleHtml = `Top 50 <em>Singles</em>`; break;
+    case "top_punjabi":  titleHtml = `Top 50 <em>Punjabi</em>`; break;
     default:             titleHtml = section.title;
   }
 

@@ -80,8 +80,16 @@ SECTIONS = [
     },
     {
         "id": "top_singles",
-        "title": "Top 50 Punjabi Single Songs",
+        "title": "Top 50 Punjabi Singles",
         "url": f"{SOURCE}/topTracks.php?cat=Single%20Track",
+        "kind": "single",
+        "paginate": False,
+        "feed_cap": 50,
+    },
+    {
+        "id": "top_punjabi",
+        "title": "Top 50 Punjabi (All)",
+        "url": f"{SOURCE}/topTracks.php?cat=Punjabi",
         "kind": "single",
         "paginate": False,
         "feed_cap": 50,

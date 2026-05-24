@@ -27,6 +27,12 @@
 
 * { box-sizing: border-box; }
 
+/* CRITICAL: Force the `hidden` attribute to take precedence over any
+   element with `display: grid/flex/block`. Without this rule, things
+   like `.player { display: grid }` override `<div hidden>` and the
+   player shows up on load even when it shouldn't. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   background: var(--bg);

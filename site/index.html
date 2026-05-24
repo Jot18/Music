@@ -20,7 +20,7 @@
 <!-- LOGIN GATE — shown by default; app.js removes it after auth succeeds. -->
 <div class="gate" id="loginGate">
   <form class="gate__card" id="loginForm" autocomplete="off">
-    <svg class="gate__mark" viewBox="0 0 64 64" aria-hidden="true">
+    <svg class="gate__mark" viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
       <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
       <circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
       <circle cx="32" cy="32" r="3" fill="currentColor"/>
@@ -37,10 +37,13 @@
 
 <div class="grain" aria-hidden="true"></div>
 
+<!-- APP SHELL — hidden until auth succeeds, then unhidden by app.js -->
+<div id="appShell" hidden>
+
 <header class="masthead">
   <div class="masthead__row">
     <div class="brand">
-      <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+      <svg class="brand__mark" viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
         <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
         <circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
         <circle cx="32" cy="32" r="3" fill="currentColor"/>
@@ -77,6 +80,7 @@
     <a href="#new_singles" class="sectionnav__link">New Singles</a>
     <a href="#new_albums"  class="sectionnav__link">New Albums</a>
     <a href="#top_singles" class="sectionnav__link">Top 50 Singles</a>
+    <a href="#top_punjabi" class="sectionnav__link">Top 50 Punjabi</a>
   </nav>
 </header>
 
@@ -86,6 +90,8 @@
     <p>Loading…</p>
   </div>
 </main>
+
+</div><!-- /#appShell -->
 
 <!-- DETAIL SHEET -->
 <dialog id="detailSheet" class="sheet" aria-labelledby="sheetTitle">
@@ -126,14 +132,14 @@
   <audio id="audio" preload="none"></audio>
   <div class="player__controls">
     <button class="iconbtn" id="btnPrev" aria-label="Previous">
-      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM20 6v12L9 12z" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h2v12H6zM20 6v12L9 12z" fill="currentColor"/></svg>
     </button>
     <button class="iconbtn iconbtn--play" id="btnPlay" aria-label="Play/Pause">
-      <svg id="iconPlay" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-      <svg id="iconPause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+      <svg id="iconPlay" viewBox="0 0 24 24" width="20" height="20"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg id="iconPause" viewBox="0 0 24 24" width="20" height="20" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
     </button>
     <button class="iconbtn" id="btnNext" aria-label="Next">
-      <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM4 6v12l11-6z" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M16 6h2v12h-2zM4 6v12l11-6z" fill="currentColor"/></svg>
     </button>
   </div>
   <div class="player__scrub">
