@@ -39,12 +39,15 @@ html, body {
 
 body {
   min-height: 100vh;
-  padding-bottom: 120px; /* room for player bar */
+  /* No padding-bottom by default. Added by body.has-player once the player
+     is first shown, so the page sits flush at the bottom until then. */
   background:
     radial-gradient(1200px 600px at 80% -10%, rgba(240,179,35,.07), transparent 60%),
     radial-gradient(900px 500px at 0% 100%, rgba(196,61,46,.06), transparent 55%),
     var(--bg);
 }
+
+body.has-player { padding-bottom: 120px; }
 
 a { color: inherit; }
 
@@ -652,22 +655,6 @@ main {
   font-size: 18px;
 }
 
-/* ============================================================ Footer */
-
-.footer {
-  position: relative;
-  z-index: 2;
-  max-width: 1400px;
-  margin: 60px auto 0;
-  padding: 32px clamp(20px, 5vw, 64px);
-  border-top: 1px solid var(--rule);
-  font-size: 13px;
-  color: var(--ink-faint);
-  line-height: 1.6;
-}
-.footer a { color: var(--ink-mute); }
-.footer a:hover { color: var(--marigold); }
-
 /* ============================================================ Responsive
    Two strategies:
    - Tablet (≤ 1024px portrait, ≤ 900px landscape): comfortable touch sizes,
@@ -704,7 +691,7 @@ main {
 
 /* Phone layout */
 @media (max-width: 720px) {
-  body {
+  body.has-player {
     padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
@@ -821,12 +808,6 @@ main {
 
   /* Hide prev on phone mini-bar; only play + next to save space */
   .player .iconbtn[id="btnPrev"] { display: none; }
-
-  .footer {
-    margin-top: 40px;
-    padding: 24px 16px;
-    font-size: 12px;
-  }
 }
 
 /* Empty state for sections with no items yet */
@@ -840,56 +821,6 @@ main {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-faint);
-}
-
-/* ============================================================ Archive */
-
-.archive-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.archive-search {
-  flex: 1;
-  min-width: 240px;
-  background: var(--bg-2);
-  color: var(--cream);
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  padding: 12px 20px;
-  font-family: var(--sans);
-  font-size: 14px;
-  font-weight: 300;
-  outline: none;
-  transition: border-color .2s ease;
-}
-.archive-search:focus {
-  border-color: var(--marigold);
-  box-shadow: 0 0 0 3px rgba(240,179,35,.12);
-}
-.archive-search::placeholder { color: var(--ink-faint); }
-
-.archive-status {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  margin: 0;
-}
-
-.archive-more {
-  grid-column: 1 / -1;
-  margin: 20px auto 0;
-  justify-self: center;
-}
-
-@media (max-width: 720px) {
-  .archive-search { padding: 10px 18px; font-size: 13px; min-width: 0; width: 100%; }
-  .archive-status { width: 100%; }
 }
 
 /* ============================================================ Now Playing (mobile full-screen)

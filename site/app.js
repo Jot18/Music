@@ -47,10 +47,24 @@ function safeText(v) {
   return (v == null || v === "") ? "—" : String(v);
 }
 
-// Some djjohal URLs have raw spaces — encode them so browsers fetch correctly.
+// Some source URLs have raw spaces — encode them so browsers fetch correctly.
 function safeUrl(u) {
   if (!u) return "";
   try { return encodeURI(u); } catch { return u; }
+}
+
+// Build a clean download filename, stripping any source-identifying tokens
+// and characters that are illegal on most filesystems.
+function sanitizeFilename(s) {
+  if (!s) return "track";
+  return s
+    .replace(/\(?\s*DJJOhAL[.\s]*Com\s*\)?/gi, "")  // strip "(DJJOhAL.Com)" / "DJJOhAL.Com"
+    .replace(/\bdjjohal\b/gi, "")                    // any remaining mention
+    .replace(/[<>:"/\\|?*\x00-\x1f]+/g, "")          // illegal FS chars
+    .replace(/\s+/g, " ")                            // collapse whitespace
+    .replace(/^[\s\-_.]+|[\s\-_.]+$/g, "")           // trim weird boundary chars
+    .slice(0, 120)                                   // sane length
+    || "track";
 }
 
 function el(tag, attrs = {}, ...children) {
@@ -80,7 +94,6 @@ function renderSection(section) {
     case "new_singles":  titleHtml = `New <em>Singles</em>`; break;
     case "new_albums":   titleHtml = `New <em>Albums</em> &amp; EPs`; break;
     case "top_singles":  titleHtml = `Top 50 <em>Singles</em>`; break;
-    case "top_albums":   titleHtml = `Top 50 <em>Chart</em>`; break;
     default:             titleHtml = section.title;
   }
 
@@ -111,102 +124,27 @@ function renderAll(data) {
     const d = new Date(data.generated_at);
     if (!isNaN(d.getTime())) {
       const opts = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
-      const archiveSize = data.stats?.archive_size ?? 0;
-      $("#lastUpdated").textContent =
-        `updated ${d.toLocaleString(undefined, opts)} · archive: ${archiveSize}`;
+      $("#lastUpdated").textContent = `updated ${d.toLocaleString(undefined, opts)}`;
     }
   }
 
-  // Build flat playlist (used for prev/next) from sections AND archive.
+  // Build flat playlist from the three sections only.
   const seen = new Set();
   STATE.playlist = [];
-  const allPools = [
-    ...(data.sections || []).flatMap(s => s.items || []),
-    ...(data.archive || []),
-  ];
-  for (const item of allPools) {
-    const k = `${item.kind}:${item.id}`;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
-      STATE.playlist.push(item);
+  for (const section of data.sections || []) {
+    for (const item of section.items || []) {
+      const k = `${item.kind}:${item.id}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320)) {
+        STATE.playlist.push(item);
+      }
     }
   }
 
   for (const section of data.sections) {
     app.append(renderSection(section));
   }
-
-  // Archive section — the accumulated history view.
-  if (Array.isArray(data.archive) && data.archive.length > 0) {
-    app.append(renderArchive(data.archive));
-  }
-}
-
-function renderArchive(archive) {
-  const wrap = el("section", { class: "section", id: "archive" });
-  const head = el("div", { class: "section__head" },
-    el("h2", { class: "section__title", html: `Full <em>Archive</em>` }),
-    el("span", { class: "section__count" }, `${archive.length} tracks · all-time`)
-  );
-  wrap.append(head);
-
-  // Search bar
-  const search = el("input", {
-    type: "search",
-    class: "archive-search",
-    placeholder: "Search archive — title, artist, label, music…",
-    "aria-label": "Search archive",
-  });
-  const status = el("p", { class: "archive-status" }, "");
-  wrap.append(el("div", { class: "archive-controls" }, search, status));
-
-  const grid = el("div", { class: "grid" });
-  wrap.append(grid);
-
-  // Limit initial render for performance; show more on demand.
-  const PAGE = 60;
-  let shown = PAGE;
-  let filtered = archive;
-
-  function renderGrid() {
-    grid.innerHTML = "";
-    const slice = filtered.slice(0, shown);
-    for (const item of slice) {
-      grid.append(buildCard(item, false, null));
-    }
-    status.textContent = filtered.length === archive.length
-      ? `Showing ${slice.length} of ${archive.length}`
-      : `${filtered.length} match · showing ${slice.length}`;
-
-    if (shown < filtered.length) {
-      const more = el("button", {
-        class: "btn btn--ghost archive-more",
-        type: "button",
-        onclick: () => { shown += PAGE; renderGrid(); },
-      }, `Load ${Math.min(PAGE, filtered.length - shown)} more`);
-      grid.append(more);
-    }
-  }
-
-  search.addEventListener("input", () => {
-    const q = search.value.trim().toLowerCase();
-    if (!q) {
-      filtered = archive;
-    } else {
-      filtered = archive.filter(it => {
-        const hay = [
-          it.title, it.artist, it.music, it.lyrics, it.label, it.released
-        ].filter(Boolean).join(" ").toLowerCase();
-        return hay.includes(q);
-      });
-    }
-    shown = PAGE;
-    renderGrid();
-  });
-
-  renderGrid();
-  return wrap;
 }
 
 // Extracted from renderSection so it can be reused by the archive.
@@ -270,9 +208,6 @@ function openSheet(item) {
     facts.append(el("dd", {}, safeText(v)));
   }
 
-  // Source link
-  $("#sheetSource").href = item.detail_url || "#";
-
   // Play button
   $("#sheetPlayBtn").onclick = () => {
     playItem(item);
@@ -282,23 +217,26 @@ function openSheet(item) {
   $("#sheetPlayBtn").disabled = !hasStream;
   $("#sheetPlayBtn").style.opacity = hasStream ? "1" : ".4";
 
-  // Downloads
+  // Downloads — with sanitized filenames (strip any source-identifying
+  // text from what the browser saves).
   const dl = $("#sheetDownloads");
   dl.innerHTML = "";
+  const cleanName = sanitizeFilename(`${item.artist || ""} - ${item.title || "track"}`.trim());
   const links = [
-    ["MP3 · 320 kbps (HD)",  item.mp3?.kbps320, "320"],
-    ["MP3 · 128 kbps",       item.mp3?.kbps128, "128"],
-    ["MP3 · 48 kbps (low)",  item.mp3?.kbps48,  "48"],
-    ["ZIP · 320 kbps",       item.mp3?.zip320,  "ZIP"],
-    ["ZIP · 128 kbps",       item.mp3?.zip128,  "ZIP"],
+    ["MP3 · 320 kbps (HD)",  item.mp3?.kbps320, "320", `${cleanName}.mp3`],
+    ["MP3 · 128 kbps",       item.mp3?.kbps128, "128", `${cleanName}.mp3`],
+    ["MP3 · 48 kbps (low)",  item.mp3?.kbps48,  "48",  `${cleanName}.mp3`],
+    ["ZIP · 320 kbps",       item.mp3?.zip320,  "ZIP", `${cleanName}.zip`],
+    ["ZIP · 128 kbps",       item.mp3?.zip128,  "ZIP", `${cleanName}.zip`],
   ].filter(([, u]) => !!u);
 
   if (links.length) {
     dl.append(el("h3", {}, "Download"));
-    for (const [label, url, tag] of links) {
+    for (const [label, url, tag, filename] of links) {
       dl.append(el("a", {
         class: "dl-row",
         href: safeUrl(url),
+        download: filename,
         target: "_blank",
         rel: "noopener",
       }, el("span", {}, label), el("span", {}, tag)));
@@ -327,7 +265,10 @@ function playItem(item) {
   STATE.currentIndex = STATE.playlist.findIndex(p => p.id === item.id && p.kind === item.kind);
   STATE.currentItem = item;
 
+  // First play: reveal the player and reserve space at the bottom of the page.
   $("#player").hidden = false;
+  document.body.classList.add("has-player");
+
   const cover = safeUrl(item.cover) || "";
   $("#playerCover").src = cover;
   $("#playerTitle").textContent = item.title || "Untitled";
@@ -397,6 +338,7 @@ $("#btnClose").addEventListener("click", () => {
   audio.pause();
   audio.src = "";
   $("#player").hidden = true;
+  document.body.classList.remove("has-player");
   closeNowPlaying();
 });
 

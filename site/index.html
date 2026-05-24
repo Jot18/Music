@@ -7,8 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Saadi Awaaz · Punjabi Music Tracker</title>
-<meta name="description" content="Auto-updating Punjabi music tracker — new singles, albums, and top charts. Refreshed every 4 hours." />
+<title>Saadi Awaaz · Punjabi Music</title>
+<meta name="description" content="Punjabi music — new singles, new albums, top singles." />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23120a04'/><circle cx='32' cy='32' r='14' fill='none' stroke='%23f0b323' stroke-width='3'/><circle cx='32' cy='32' r='3' fill='%23f0b323'/></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,7 +17,6 @@
 </head>
 <body>
 
-<!-- subtle film grain over everything -->
 <div class="grain" aria-hidden="true"></div>
 
 <header class="masthead">
@@ -30,7 +29,7 @@
       </svg>
       <div class="brand__text">
         <span class="brand__name">Saadi&nbsp;Awaaz</span>
-        <span class="brand__sub">Punjabi Music Tracker</span>
+        <span class="brand__sub">Punjabi Music</span>
       </div>
     </div>
     <div class="masthead__meta">
@@ -43,16 +42,13 @@
     <a href="#new_singles" class="sectionnav__link">New Singles</a>
     <a href="#new_albums"  class="sectionnav__link">New Albums</a>
     <a href="#top_singles" class="sectionnav__link">Top 50 Singles</a>
-    <a href="#top_albums"  class="sectionnav__link">Top 50 Chart</a>
-    <a href="#archive"     class="sectionnav__link">Archive</a>
   </nav>
 </header>
 
 <main id="app">
-  <!-- sections injected here -->
   <div class="loading" id="loading">
     <div class="loading__spinner"></div>
-    <p>Loading the latest drops…</p>
+    <p>Loading…</p>
   </div>
 </main>
 
@@ -72,7 +68,6 @@
 
       <div class="sheet__actions">
         <button class="btn btn--primary" id="sheetPlayBtn">▶ &nbsp;Play</button>
-        <a class="btn btn--ghost" id="sheetSource" target="_blank" rel="noopener">View on djjohal&nbsp;↗</a>
       </div>
 
       <div class="sheet__downloads" id="sheetDownloads"></div>
@@ -80,7 +75,7 @@
   </div>
 </dialog>
 
-<!-- PERSISTENT PLAYER (mini bar) -->
+<!-- PERSISTENT PLAYER (mini bar) — hidden until first play -->
 <div class="player" id="player" hidden>
   <button class="player__expand" id="btnExpand" aria-label="Expand player">
     <div class="player__cover-wrap">
@@ -146,13 +141,6 @@
   </div>
   <button class="np__source" id="npSource" type="button">View details</button>
 </div>
-
-<footer class="footer">
-  <p>
-    A personal Punjabi music tracker. All songs, cover art, and audio
-    remain the property of their respective owners.
-  </p>
-</footer>
 
 <script src="app.js"></script>
 </body>

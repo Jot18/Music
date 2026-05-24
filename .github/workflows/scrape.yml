@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   scrape:
-    name: Scrape djjohal.com
+    name: Scrape source
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

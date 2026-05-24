@@ -1,26 +1,22 @@
 #!/usr/bin/env python3
 """
-DJJOhAL.Com Scraper v3
-======================
+Scraper v5 — Punjabi music feeds.
 
-Goals:
-  - First run: deep scrape every paginated listing page (full history).
-  - Subsequent runs: walk listings only until we hit pages where every ID is
-    already known, then stop. Never re-fetch detail pages for known IDs.
-  - Track first_seen_at / last_seen_at per item.
-  - Output songs.json with two layers:
-      * sections[] : the four visible feeds (live ordering from djjohal)
-      * archive[]  : all items ever seen, with timestamps (history)
+Three feeds:
+  1. New Punjabi Single Songs   (paginated, /get/{id}/...)
+  2. New Punjabi Full Album/EP  (paginated, /album/{id}/...)
+  3. Top 50 Punjabi Singles     (single page, ranked)
 
-The same `data/songs.json` file is the database. It's loaded at startup,
-mutated, and rewritten. No SQLite needed — the JSON IS the persistent store,
-and the website can read it directly.
+Behaviour:
+  - First run / DEEP_SCRAPE=yes  ->  walks every paginated page until exhausted.
+  - Normal run                    ->  walks listings only until two consecutive
+                                       pages of fully-known IDs, then stops.
+  - Detail pages are fetched ONCE per song; cached forever in data/songs.json.
+  - A per-section min-coverage check forces a deep walk if the cache for that
+    section looks suspiciously small (e.g. only 16 items when there should be
+    hundreds), without needing manual intervention.
 
-Sections scraped (each follows pagination):
-  1. New Punjabi Single Songs  category.php?cat=Single Track    -> /get/{id}/
-  2. New Punjabi Full Album/EP category.php?cat=Punjabi          -> /album/{id}/
-  3. Top 50 Punjabi Singles    topTracks.php?cat=Single Track    -> /get/{id}/ (no pages)
-  4. Top 50 Punjabi Chart      topTracks.php?cat=Punjabi         -> /get/{id}/ (no pages)
+The JSON file IS the persistent store. No SQLite needed.
 """
 
 from __future__ import annotations
@@ -37,49 +33,45 @@ from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
-BASE = "https://www.djjohal.com"
+SOURCE = "https://www.djjohal.com"
 
 SECTIONS = [
     {
         "id": "new_singles",
         "title": "New Punjabi Single Songs",
-        "url": f"{BASE}/category.php?cat=Single%20Track",
+        "url": f"{SOURCE}/category.php?cat=Single%20Track",
         "kind": "single",
         "paginate": True,
-        "live_cap": 60,
+        "live_cap": 200,
+        "min_coverage": 80,
     },
     {
         "id": "new_albums",
         "title": "New Punjabi Full Album/EP",
-        "url": f"{BASE}/category.php?cat=Punjabi",
+        "url": f"{SOURCE}/category.php?cat=Punjabi",
         "kind": "album",
         "paginate": True,
-        "live_cap": 60,
+        "live_cap": 200,
+        "min_coverage": 60,
     },
     {
         "id": "top_singles",
         "title": "Top 50 Punjabi Single Songs",
-        "url": f"{BASE}/topTracks.php?cat=Single%20Track",
+        "url": f"{SOURCE}/topTracks.php?cat=Single%20Track",
         "kind": "single",
         "paginate": False,
         "live_cap": 50,
-    },
-    {
-        "id": "top_albums",
-        "title": "Top 50 Punjabi Songs (Chart)",
-        "url": f"{BASE}/topTracks.php?cat=Punjabi",
-        "kind": "single",
-        "paginate": False,
-        "live_cap": 50,
+        "min_coverage": 0,
     },
 ]
 
-# Set DEEP_SCRAPE=yes to force a full re-walk of all pages.
-# 'auto' (default) = deep when archive is empty; incremental otherwise.
+# DEEP_SCRAPE=yes forces a full deep walk for every section.
+# DEEP_SCRAPE=no  forces incremental even on fresh archives.
+# DEEP_SCRAPE=auto (default) decides per-section using min_coverage.
 DEEP_SCRAPE = os.environ.get("DEEP_SCRAPE", "auto").lower()
 
 MAX_PAGES_PER_SECTION = 200
-MAX_DETAIL_FETCHES_PER_RUN = 500
+MAX_DETAIL_FETCHES_PER_RUN = 800
 DETAIL_DELAY_SECONDS = 0.30
 LISTING_DELAY_SECONDS = 0.40
 STOP_AFTER_N_KNOWN_PAGES = 2
@@ -95,6 +87,8 @@ HEADERS = {
 DETAIL_PATH_RE = re.compile(r"^/(single|get|album)/(\d+)/([^/]+)\.html$")
 
 
+# ---------- HTTP ------------------------------------------------------------
+
 def fetch(url: str, timeout: int = 25) -> str:
     last_err: Exception | None = None
     for attempt in range(3):
@@ -108,10 +102,10 @@ def fetch(url: str, timeout: int = 25) -> str:
     raise RuntimeError(f"Failed to fetch {url}: {last_err}")
 
 
-def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | None]:
-    """Return (entries, next_page_url_or_None)."""
-    soup = BeautifulSoup(html, "html.parser")
+# ---------- Listing parsing -------------------------------------------------
 
+def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | None]:
+    soup = BeautifulSoup(html, "html.parser")
     items: list[dict] = []
     seen_ids: set[str] = set()
     next_url: str | None = None
@@ -119,8 +113,8 @@ def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | No
     for a in soup.find_all("a", href=True):
         href = a["href"]
         if href.startswith("http"):
-            if href.startswith(BASE):
-                path = href[len(BASE):]
+            if href.startswith(SOURCE):
+                path = href[len(SOURCE):]
             else:
                 continue
         else:
@@ -145,7 +139,7 @@ def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | No
                 "id": item_id,
                 "slug": slug,
                 "url_kind": url_kind,
-                "detail_url": urljoin(BASE + "/", path.lstrip("/")),
+                "detail_url": urljoin(SOURCE + "/", path.lstrip("/")),
                 "listing_text": text,
             })
             continue
@@ -153,21 +147,38 @@ def extract_listing(html: str, expected_kind: str) -> tuple[list[dict], str | No
         link_text = a.get_text(" ", strip=True).lower()
         if "next page" in link_text or link_text == "next":
             if path.startswith("/"):
-                next_url = urljoin(BASE + "/", path.lstrip("/"))
+                next_url = urljoin(SOURCE + "/", path.lstrip("/"))
 
     return items, next_url
 
 
-def walk_section_listings(section: dict, known_ids: set[str]) -> list[dict]:
+def walk_section_listings(section: dict, known_ids_for_kind: set[str]) -> list[dict]:
     """
-    Walk paginated listings for one section. Stops early on incremental runs
-    once a page has all-known IDs (for STOP_AFTER_N_KNOWN_PAGES in a row).
+    Walk paginated listings for one section.
+
+    Deep mode is engaged when:
+      - DEEP_SCRAPE == 'yes', OR
+      - DEEP_SCRAPE == 'auto' AND known_ids_for_kind has fewer items than
+        the section's min_coverage threshold.
+
+    Otherwise walks incrementally and stops after STOP_AFTER_N_KNOWN_PAGES
+    consecutive pages where every ID is already known.
     """
-    deep = (DEEP_SCRAPE == "yes") or (DEEP_SCRAPE == "auto" and not known_ids)
-    if deep:
-        print(f"  [deep mode] walking ALL pages")
-    else:
-        print(f"  [incremental] will stop after {STOP_AFTER_N_KNOWN_PAGES} fully-known pages")
+    if DEEP_SCRAPE == "yes":
+        deep = True
+        reason = "DEEP_SCRAPE=yes"
+    elif DEEP_SCRAPE == "no":
+        deep = False
+        reason = "DEEP_SCRAPE=no"
+    else:  # auto
+        deep = len(known_ids_for_kind) < section["min_coverage"]
+        if deep:
+            reason = (f"auto: cache has {len(known_ids_for_kind)} known IDs, "
+                      f"below threshold {section['min_coverage']}")
+        else:
+            reason = f"auto: cache has {len(known_ids_for_kind)} known IDs"
+
+    print(f"  mode: {'DEEP' if deep else 'incremental'}  ({reason})")
 
     all_entries: list[dict] = []
     seen_global: set[str] = set()
@@ -200,10 +211,10 @@ def walk_section_listings(section: dict, known_ids: set[str]) -> list[dict]:
             break
 
         all_entries.extend(new_on_page)
-        print(f"    +{len(new_on_page)} entries (total {len(all_entries)})")
+        print(f"    +{len(new_on_page)} entries (running total {len(all_entries)})")
 
         if not deep:
-            all_known = all(e["id"] in known_ids for e in new_on_page)
+            all_known = all(e["id"] in known_ids_for_kind for e in new_on_page)
             if all_known:
                 consecutive_known_pages += 1
                 print(f"    all {len(new_on_page)} already known "
@@ -226,6 +237,8 @@ def walk_section_listings(section: dict, known_ids: set[str]) -> list[dict]:
 
     return all_entries
 
+
+# ---------- Detail-page parsing --------------------------------------------
 
 def _field_after(text: str, label: str) -> str:
     pat = re.compile(rf"\b{re.escape(label)}\s*:\s*(.+)", re.IGNORECASE)
@@ -258,7 +271,6 @@ def parse_detail(html: str, kind: str) -> dict:
             cover = img["src"].strip()
 
     body_text = soup.get_text("\n", strip=True)
-    desc_text = ""
     desc_div = soup.find("div", class_="description")
     if desc_div:
         desc_text = desc_div.get_text("\n", strip=True)
@@ -331,7 +343,10 @@ def parse_detail(html: str, kind: str) -> dict:
     }
 
 
-def load_archive(path: Path) -> dict[str, dict]:
+# ---------- Cache layer (the JSON "DB") ------------------------------------
+
+def load_cache(path: Path) -> dict[str, dict]:
+    """Load all previously-fetched items keyed by `${kind}:${id}`."""
     if not path.exists():
         return {}
     try:
@@ -339,17 +354,20 @@ def load_archive(path: Path) -> dict[str, dict]:
     except Exception:
         return {}
 
-    archive: dict[str, dict] = {}
+    cache: dict[str, dict] = {}
+    # New shape: top-level "items" array (one canonical record per song).
+    for item in data.get("items", []) or []:
+        cache[f"{item.get('kind')}:{item.get('id')}"] = item
+    # Legacy: archive[]
     for item in data.get("archive", []) or []:
         key = f"{item.get('kind')}:{item.get('id')}"
-        archive[key] = item
-    # Backfill from legacy sections[].items[] shape.
+        cache.setdefault(key, item)
+    # Legacy: sections[].items[]
     for section in data.get("sections", []) or []:
         for item in section.get("items", []) or []:
             key = f"{item.get('kind')}:{item.get('id')}"
-            if key not in archive:
-                archive[key] = item
-    return archive
+            cache.setdefault(key, item)
+    return cache
 
 
 def is_bad_cache(item: dict) -> bool:
@@ -373,19 +391,22 @@ def _empty_detail(kind: str) -> dict:
     }
 
 
+# ---------- Main pipeline --------------------------------------------------
+
 def main() -> int:
     out_path = Path(__file__).resolve().parent.parent / "data" / "songs.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    archive = load_archive(out_path)
-    print(f"[start] archive size: {len(archive)}  deep={DEEP_SCRAPE}")
+    cache = load_cache(out_path)
+    print(f"[start] cache: {len(cache)} items  deep_scrape={DEEP_SCRAPE}")
 
     now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     detail_fetches = 0
     sections_out: list[dict] = []
 
+    # Per-kind known IDs.
     known_by_kind: dict[str, set[str]] = {"single": set(), "album": set()}
-    for item in archive.values():
+    for item in cache.values():
         k = item.get("kind")
         if k in known_by_kind:
             known_by_kind[k].add(item.get("id"))
@@ -403,7 +424,7 @@ def main() -> int:
 
         for entry in entries:
             key = f"{section['kind']}:{entry['id']}"
-            cached = archive.get(key)
+            cached = cache.get(key)
 
             need_fetch = (not cached) or is_bad_cache(cached)
 
@@ -427,6 +448,7 @@ def main() -> int:
                 detail = _empty_detail(section["kind"])
                 detail["first_seen_at"] = now_iso
 
+            # Title/artist override from listing text (most reliable).
             lt_title, lt_artist = parse_listing_text(entry["listing_text"], section["kind"])
             if lt_title and lt_artist:
                 detail["title"] = lt_title
@@ -445,7 +467,7 @@ def main() -> int:
             detail["last_seen_at"] = now_iso
             detail.setdefault("first_seen_at", now_iso)
 
-            archive[key] = detail
+            cache[key] = detail
 
             live = dict(detail)
             live["section_id"] = section["id"]
@@ -463,31 +485,31 @@ def main() -> int:
             "items": live_items,
         })
 
-    archive_list = sorted(
-        archive.values(),
+    # Flat canonical items list (used as the cache on next run).
+    items_flat = sorted(
+        cache.values(),
         key=lambda x: (x.get("first_seen_at", ""), x.get("id", "")),
         reverse=True,
     )
 
     output = {
         "generated_at": now_iso,
-        "source": BASE,
         "stats": {
-            "archive_size": len(archive_list),
+            "cache_size": len(items_flat),
             "detail_fetches_this_run": detail_fetches,
             "deep_scrape": DEEP_SCRAPE,
         },
         "sections": sections_out,
-        "archive": archive_list,
+        "items": items_flat,
     }
 
     out_path.write_text(json.dumps(output, ensure_ascii=False, indent=2),
                         encoding="utf-8")
 
     print(f"\n[done] wrote {out_path}")
-    print(f"       archive: {len(archive_list)}  "
+    print(f"       cache: {len(items_flat)}  "
           f"section items: {sum(len(s['items']) for s in sections_out)}  "
-          f"detail fetches: {detail_fetches}")
+          f"detail fetches this run: {detail_fetches}")
     return 0
 
 
