@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-05-24T21:19:41+00:00",
+  "source": "https://www.djjohal.com",
+  "note": "Seed data — will be replaced on first scheduled scrape.",
+  "sections": [
+    {
+      "id": "new_singles",
+      "title": "New Punjabi Single Songs",
+      "kind": "single",
+      "items": [
+        {
+          "id": "736760",
+          "slug": "jassi-sohal-jaane-2",
+          "kind": "single",
+          "section_id": "new_singles",
+          "detail_url": "https://www.djjohal.com/single/736760/jassi-sohal-jaane-2.html",
+          "title": "Jaane 2",
+          "artist": "Jassi Sohal",
+          "music": "Deep Gherra",
+          "lyrics": "Raajinder",
+          "label": "Jassi Sohal Music",
+          "released": "24-05-2026",
+          "playtime": "03:05",
+          "plays": "1639",
+          "cover": "https://lq.djjohal.com/covers/736760/Jaane 2.jpg",
+          "mp3": {
+            "stream": "https://dl2.djring.com/sd2.djjohal.com/128/526498/Jaane 2(DJJOhAL.Com).mp3",
+            "kbps320": "https://hd1.djjohal.com/320/526498/Jaane 2 - Jassi Sohal (DJJOhAL.Com).mp3",
+            "kbps128": "https://sd2.djjohal.com/128/526498/Jaane 2 - Jassi Sohal (DJJOhAL.Com).mp3",
+            "kbps48": "https://lq.djjohal.com/48/526498/Jaane 2 - Jassi Sohal (DJJOhAL.Com).mp3",
+            "zip320": "https://hd1.djjohal.com/download/zip/736760/320/Jaane 2.zip",
+            "zip128": "https://hd.djjohal.com/download/zip/736760/128/Jaane 2.zip"
+          }
+        }
+      ]
+    },
+    { "id": "new_albums", "title": "New Punjabi Full Album/EP", "kind": "album", "items": [] },
+    { "id": "top_singles", "title": "Top 50 Punjabi Single Songs", "kind": "single", "items": [] },
+    { "id": "top_albums", "title": "Top 50 Punjabi Album Songs", "kind": "album", "items": [] }
+  ]
+}
