@@ -571,6 +571,20 @@ main {
 }
 .player__cover-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
+/* On desktop the expand button is just a layout container — make it look
+   like one. On touch devices (mobile/tablet) the .is-touch override at
+   the bottom of this file restores the button affordance. */
+.player__expand {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  display: contents;     /* let the cover-wrap and meta sit in the grid */
+  color: inherit;
+  font-family: inherit;
+  cursor: default;
+  text-align: left;
+}
+
 .player__meta { min-width: 0; }
 .player__title {
   font-family: var(--serif);
@@ -654,32 +668,165 @@ main {
 .footer a { color: var(--ink-mute); }
 .footer a:hover { color: var(--marigold); }
 
-/* ============================================================ Responsive */
+/* ============================================================ Responsive
+   Two strategies:
+   - Tablet (≤ 1024px portrait, ≤ 900px landscape): comfortable touch sizes,
+     player still inline at bottom but bigger.
+   - Phone (≤ 720px): compact mini-player bar, full-screen now-playing
+     overlay when expanded, larger tap targets, no hover effects.
+   The .is-touch body class is added by JS to suppress hover affordances on
+   touch devices regardless of viewport width.
+   ============================================================ */
 
+/* Tablet sizing */
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; }
+  .sectionnav__link { padding: 10px 16px; }
+  .masthead { padding: 24px clamp(16px, 4vw, 40px) 0; }
+  main { padding: 28px clamp(16px, 4vw, 40px) 60px; }
+}
+
+/* Touch devices — disable hover-only affordances */
+.is-touch .card__play {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  width: 44px; height: 44px;
+  right: 10px; bottom: 10px;
+}
+.is-touch .card:hover { transform: none; }
+.is-touch .card:hover .card__cover { transform: none; filter: none; }
+.is-touch .card:hover .card__cover-wrap::after { opacity: 0; }
+.is-touch .sectionnav__link:hover {
+  color: var(--ink-mute);
+  border-color: var(--rule);
+  background: transparent;
+}
+
+/* Phone layout */
 @media (max-width: 720px) {
-  body { padding-bottom: 200px; }
+  body {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
 
-  .sheet__inner { grid-template-columns: 1fr; max-height: 90vh; }
-  .sheet__cover-wrap { aspect-ratio: 1 / 1; max-height: 40vh; }
-  .sheet__body { padding: 24px; }
-  .sheet__facts { grid-template-columns: 90px 1fr; }
+  .masthead { padding: 18px 16px 0; }
+  .masthead__row { gap: 12px; }
+  .brand__mark { width: 32px; height: 32px; }
+  .brand__name { font-size: 22px; }
+  .brand__sub { display: none; }
+  .masthead__meta { font-size: 10px; }
+  .masthead__hairline { margin-top: 14px; }
 
+  .sectionnav {
+    padding: 14px 0 0;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .sectionnav::-webkit-scrollbar { display: none; }
+  .sectionnav__link { white-space: nowrap; flex-shrink: 0; }
+
+  main { padding: 24px 16px 40px; }
+
+  .section { margin-top: 40px; }
+  .section__head { margin-bottom: 16px; padding-bottom: 10px; }
+  .section__title { font-size: 26px; }
+
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .card__rank { font-size: 30px; top: 6px; left: 8px; }
+  .card__badge { font-size: 8px; padding: 3px 6px; top: 6px; right: 6px; }
+  .card__title { font-size: 14px; line-height: 1.2; }
+  .card__artist { font-size: 11px; }
+  .card__meta { padding: 8px 2px 0; }
+
+  /* Detail sheet — full-bleed bottom sheet */
+  .sheet {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    margin: 0;
+    margin-top: auto;
+    padding: 0;
+    border-radius: 20px 20px 0 0;
+  }
+  .sheet[open] { animation: sheetUp .35s cubic-bezier(.2,.7,.2,1); }
+  @keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to   { transform: none; }
+  }
+  .sheet__inner {
+    grid-template-columns: 1fr;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    border-left: 0; border-right: 0; border-bottom: 0;
+  }
+  .sheet__cover-wrap {
+    aspect-ratio: 1 / 1;
+    max-height: 38vh;
+  }
+  .sheet__body { padding: 24px 20px 28px; }
+  .sheet__title { font-size: 26px; }
+  .sheet__artist { font-size: 17px; margin-bottom: 22px; }
+  .sheet__facts {
+    grid-template-columns: 84px 1fr;
+    row-gap: 10px;
+    padding: 16px 0;
+    margin-bottom: 22px;
+  }
+  .sheet__facts dt { font-size: 9px; }
+  .sheet__facts dd { font-size: 14px; }
+  .sheet__close { width: 36px; height: 36px; top: 14px; right: 14px; }
+  .btn { padding: 14px 22px; font-size: 14px; }
+
+  /* Player — compact mini-bar at the bottom */
   .player {
-    grid-template-columns: 48px 1fr auto;
-    grid-template-rows: auto auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    border-left: 0; border-right: 0; border-bottom: 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto;
+    gap: 8px;
+    box-shadow: 0 -8px 32px -8px rgba(0,0,0,.6);
+  }
+  .player__expand {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
     gap: 10px;
-    padding: 10px 12px;
+    min-width: 0;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
   }
-  .player__cover-wrap { width: 48px; height: 48px; }
-  .player__controls { grid-column: 3; grid-row: 1; }
+  .player__cover-wrap { width: 44px; height: 44px; flex-shrink: 0; }
+  .player__title { font-size: 14px; }
+  .player__artist { font-size: 11px; }
   .player__scrub {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    display: none; /* hidden on mobile mini-bar; lives in expanded view */
   }
+  .player__controls { gap: 2px; }
+  .player__controls .iconbtn { width: 40px; height: 40px; }
+  .player__controls .iconbtn--play { width: 44px; height: 44px; }
   .player__close { display: none; }
 
-  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
-  .card__play { width: 40px; height: 40px; right: 8px; bottom: 8px; }
+  /* Hide prev on phone mini-bar; only play + next to save space */
+  .player .iconbtn[id="btnPrev"] { display: none; }
+
+  .footer {
+    margin-top: 40px;
+    padding: 24px 16px;
+    font-size: 12px;
+  }
 }
 
 /* Empty state for sections with no items yet */
@@ -739,3 +886,169 @@ main {
   margin: 20px auto 0;
   justify-self: center;
 }
+
+@media (max-width: 720px) {
+  .archive-search { padding: 10px 18px; font-size: 13px; min-width: 0; width: 100%; }
+  .archive-status { width: 100%; }
+}
+
+/* ============================================================ Now Playing (mobile full-screen)
+   This overlay is hidden on desktop entirely. On phones, tapping the
+   mini-player bar's title area opens it; on tablets in portrait it can
+   also be used. It's modeled after the Spotify / Apple Music expanded
+   now-playing view.
+   ============================================================ */
+
+.np {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background:
+    radial-gradient(80% 60% at 50% 0%, rgba(240,179,35,.18), transparent 70%),
+    radial-gradient(70% 60% at 50% 100%, rgba(196,61,46,.14), transparent 70%),
+    var(--bg);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 28px calc(28px + env(safe-area-inset-bottom, 0px));
+  color: var(--ink);
+  overflow: hidden;
+  touch-action: none;
+}
+.np.is-open {
+  display: flex;
+  animation: npUp .35s cubic-bezier(.2,.7,.2,1);
+}
+@keyframes npUp {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+
+.np__handle {
+  width: 44px;
+  height: 4px;
+  background: var(--rule);
+  border-radius: 999px;
+  margin: 4px 0 12px;
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.np__chev {
+  position: absolute;
+  top: 14px; left: 16px;
+  background: transparent;
+  border: 0;
+  color: var(--cream);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+}
+.np__chev:hover { background: rgba(245,233,210,.08); }
+
+.np__cover-wrap {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+  margin: 12px auto 28px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--bg-3);
+  box-shadow:
+    0 30px 60px -20px rgba(0,0,0,.7),
+    0 0 0 1px rgba(245,233,210,.04);
+  flex-shrink: 0;
+}
+.np__cover {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.np__meta {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.np__title {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-style: italic;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  color: var(--cream);
+  line-height: 1.1;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.np__artist {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-style: italic;
+  color: var(--ink-mute);
+  margin: 0;
+}
+
+.np__scrub {
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: 28px;
+}
+.np__scrub .scrub { height: 5px; }
+.np__times {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 8px;
+}
+
+.np__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+.np__btn {
+  background: transparent;
+  border: 0;
+  color: var(--cream);
+  cursor: pointer;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  transition: transform .15s ease;
+}
+.np__btn:active { transform: scale(.92); }
+.np__btn--play {
+  background: var(--marigold);
+  color: var(--bg);
+  width: 72px; height: 72px;
+  box-shadow: 0 8px 24px -6px rgba(240,179,35,.5);
+}
+.np__btn--play:active { transform: scale(.95); }
+
+.np__source {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-mute);
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.np__source:active { background: var(--bg-2); color: var(--cream); }

@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#120a04" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Saadi Awaaz · Punjabi Music Tracker</title>
 <meta name="description" content="Auto-updating Punjabi music tracker — new singles, albums, and top charts. Refreshed every 4 hours." />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23120a04'/><circle cx='32' cy='32' r='14' fill='none' stroke='%23f0b323' stroke-width='3'/><circle cx='32' cy='32' r='3' fill='%23f0b323'/></svg>" />
@@ -76,15 +80,17 @@
   </div>
 </dialog>
 
-<!-- PERSISTENT PLAYER -->
+<!-- PERSISTENT PLAYER (mini bar) -->
 <div class="player" id="player" hidden>
-  <div class="player__cover-wrap">
-    <img id="playerCover" alt="" />
-  </div>
-  <div class="player__meta">
-    <div class="player__title" id="playerTitle">—</div>
-    <div class="player__artist" id="playerArtist">—</div>
-  </div>
+  <button class="player__expand" id="btnExpand" aria-label="Expand player">
+    <div class="player__cover-wrap">
+      <img id="playerCover" alt="" />
+    </div>
+    <div class="player__meta">
+      <div class="player__title" id="playerTitle">—</div>
+      <div class="player__artist" id="playerArtist">—</div>
+    </div>
+  </button>
   <audio id="audio" preload="none"></audio>
   <div class="player__controls">
     <button class="iconbtn" id="btnPrev" aria-label="Previous">
@@ -106,11 +112,45 @@
   <button class="iconbtn player__close" id="btnClose" aria-label="Close player">&times;</button>
 </div>
 
+<!-- EXPANDED NOW-PLAYING (mobile full-screen) -->
+<div class="np" id="nowPlaying" hidden aria-hidden="true">
+  <div class="np__handle" id="npHandle" aria-label="Drag to dismiss"></div>
+  <button class="np__chev" id="btnCollapse" aria-label="Collapse player">
+    <svg viewBox="0 0 24 24" width="22" height="22"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+  </button>
+  <div class="np__cover-wrap">
+    <img id="npCover" class="np__cover" alt="" />
+  </div>
+  <div class="np__meta">
+    <h2 class="np__title" id="npTitle">—</h2>
+    <p class="np__artist" id="npArtist">—</p>
+  </div>
+  <div class="np__scrub">
+    <div class="scrub" id="npScrub"><div class="scrub__fill" id="npScrubFill"></div></div>
+    <div class="np__times">
+      <span id="npCurTime">0:00</span>
+      <span id="npTotTime">0:00</span>
+    </div>
+  </div>
+  <div class="np__controls">
+    <button class="np__btn" id="npPrev" aria-label="Previous">
+      <svg viewBox="0 0 24 24" width="30" height="30"><path d="M6 6h2v12H6zM20 6v12L9 12z" fill="currentColor"/></svg>
+    </button>
+    <button class="np__btn np__btn--play" id="npPlay" aria-label="Play/Pause">
+      <svg id="npIconPlay" viewBox="0 0 24 24" width="36" height="36"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      <svg id="npIconPause" viewBox="0 0 24 24" width="36" height="36" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+    </button>
+    <button class="np__btn" id="npNext" aria-label="Next">
+      <svg viewBox="0 0 24 24" width="30" height="30"><path d="M16 6h2v12h-2zM4 6v12l11-6z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <button class="np__source" id="npSource" type="button">View details</button>
+</div>
+
 <footer class="footer">
   <p>
-    Data is automatically harvested from <a href="https://www.djjohal.com" target="_blank" rel="noopener">djjohal.com</a>
-    every 4 hours via GitHub Actions. This site is a personal tracker — all songs,
-    cover art, and audio remain the property of their respective owners.
+    A personal Punjabi music tracker. All songs, cover art, and audio
+    remain the property of their respective owners.
   </p>
 </footer>
 

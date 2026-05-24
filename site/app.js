@@ -1,19 +1,36 @@
 /* ============================================================
    Saadi Awaaz · App logic
    - Fetches data/songs.json
-   - Renders the four sections
+   - Renders the four sections + searchable archive
    - Detail sheet on cover click
-   - Persistent player with prev/next/scrub
+   - Persistent mini-player + full-screen now-playing overlay (mobile)
    ============================================================ */
 
 const STATE = {
   sections: [],
-  // Flat playlist built from all items, used for prev/next navigation.
   playlist: [],
   currentIndex: -1,
+  currentItem: null,
 };
 
-// ------- Helpers ----------------------------------------------------------
+// ------- Touch / mobile detection ---------------------------------------
+
+/** Returns true on touch-first devices (phones, tablets). */
+function isTouchDevice() {
+  // Coarse pointer is the most reliable signal.
+  if (window.matchMedia("(pointer: coarse)").matches) return true;
+  // Fallback: UA sniff for iPad-on-desktop-mode quirks.
+  if (/iPad|iPhone|iPod|Android/i.test(navigator.userAgent)) return true;
+  // navigator.maxTouchPoints catches iPadOS reporting as Mac.
+  return navigator.maxTouchPoints > 1;
+}
+
+if (isTouchDevice()) {
+  document.documentElement.classList.add("is-touch");
+  document.body.classList.add("is-touch");
+}
+
+// ------- Helpers --------------------------------------------------------
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
@@ -307,13 +324,19 @@ function playItem(item) {
     return;
   }
 
-  // Find index in flat playlist (may not exist if filtered out).
   STATE.currentIndex = STATE.playlist.findIndex(p => p.id === item.id && p.kind === item.kind);
+  STATE.currentItem = item;
 
   $("#player").hidden = false;
-  $("#playerCover").src = safeUrl(item.cover) || "";
+  const cover = safeUrl(item.cover) || "";
+  $("#playerCover").src = cover;
   $("#playerTitle").textContent = item.title || "Untitled";
   $("#playerArtist").textContent = item.artist || "";
+
+  // Sync now-playing overlay too (so if it's already open, it updates).
+  $("#npCover").src = cover;
+  $("#npTitle").textContent = item.title || "Untitled";
+  $("#npArtist").textContent = item.artist || "";
 
   audio.src = safeUrl(stream);
   audio.play().catch(err => {
@@ -341,18 +364,30 @@ function playNext() {
   playItem(STATE.playlist[i]);
 }
 
-// Player event wiring
-audio.addEventListener("play",  () => { $("#iconPlay").style.display = "none"; $("#iconPause").style.display = ""; });
-audio.addEventListener("pause", () => { $("#iconPlay").style.display = "";     $("#iconPause").style.display = "none"; });
+// Player event wiring — sync both the mini-bar and the now-playing overlay.
+function setPlayingUI(isPlaying) {
+  $("#iconPlay").style.display   = isPlaying ? "none" : "";
+  $("#iconPause").style.display  = isPlaying ? "" : "none";
+  $("#npIconPlay").style.display  = isPlaying ? "none" : "";
+  $("#npIconPause").style.display = isPlaying ? "" : "none";
+}
+
+audio.addEventListener("play",  () => setPlayingUI(true));
+audio.addEventListener("pause", () => setPlayingUI(false));
 audio.addEventListener("ended", playNext);
 
 audio.addEventListener("timeupdate", () => {
   const cur = audio.currentTime || 0;
   const tot = audio.duration || 0;
-  $("#curTime").textContent = fmtTime(cur);
-  $("#totTime").textContent = fmtTime(tot);
+  const curStr = fmtTime(cur);
+  const totStr = fmtTime(tot);
+  $("#curTime").textContent = curStr;
+  $("#totTime").textContent = totStr;
+  $("#npCurTime").textContent = curStr;
+  $("#npTotTime").textContent = totStr;
   const pct = tot > 0 ? (cur / tot) * 100 : 0;
-  $("#scrubFill").style.width = `${pct}%`;
+  $("#scrubFill").style.width   = `${pct}%`;
+  $("#npScrubFill").style.width = `${pct}%`;
 });
 
 $("#btnPlay").addEventListener("click", togglePlay);
@@ -362,15 +397,109 @@ $("#btnClose").addEventListener("click", () => {
   audio.pause();
   audio.src = "";
   $("#player").hidden = true;
+  closeNowPlaying();
 });
 
-// Click on scrub bar to seek
-$("#scrub").addEventListener("click", (e) => {
-  if (!audio.duration) return;
-  const r = e.currentTarget.getBoundingClientRect();
-  const pct = (e.clientX - r.left) / r.width;
-  audio.currentTime = Math.max(0, Math.min(audio.duration, pct * audio.duration));
+// Now-playing controls mirror the mini-bar
+$("#npPlay").addEventListener("click", togglePlay);
+$("#npPrev").addEventListener("click", playPrev);
+$("#npNext").addEventListener("click", playNext);
+$("#npSource").addEventListener("click", () => {
+  if (STATE.currentItem) {
+    closeNowPlaying();
+    openSheet(STATE.currentItem);
+  }
 });
+
+// Click on scrub bar to seek (works on both bars)
+function seekFromEvent(e, scrubEl) {
+  if (!audio.duration) return;
+  const r = scrubEl.getBoundingClientRect();
+  const x = (e.touches ? e.touches[0].clientX : e.clientX);
+  const pct = (x - r.left) / r.width;
+  audio.currentTime = Math.max(0, Math.min(audio.duration, pct * audio.duration));
+}
+$("#scrub").addEventListener("click",   (e) => seekFromEvent(e, e.currentTarget));
+$("#npScrub").addEventListener("click", (e) => seekFromEvent(e, e.currentTarget));
+
+// ------- Now-playing overlay (mobile expanded view) ---------------------
+
+const nowPlaying = $("#nowPlaying");
+
+function openNowPlaying() {
+  if (!STATE.currentItem) return;
+  // Refresh content in case the track changed while collapsed.
+  $("#npCover").src    = safeUrl(STATE.currentItem.cover) || "";
+  $("#npTitle").textContent  = STATE.currentItem.title || "Untitled";
+  $("#npArtist").textContent = STATE.currentItem.artist || "";
+  nowPlaying.hidden = false;
+  nowPlaying.setAttribute("aria-hidden", "false");
+  nowPlaying.classList.add("is-open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeNowPlaying() {
+  nowPlaying.classList.remove("is-open");
+  nowPlaying.setAttribute("aria-hidden", "true");
+  // Wait for the animation to end before fully hiding.
+  setTimeout(() => { nowPlaying.hidden = true; }, 320);
+  document.body.style.overflow = "";
+}
+
+$("#btnExpand").addEventListener("click", () => {
+  // Desktop: clicking the title area in the mini-bar shouldn't open the
+  // full-screen overlay. The overlay is purely a mobile/tablet pattern.
+  if (!document.body.classList.contains("is-touch")) return;
+  openNowPlaying();
+});
+$("#btnCollapse").addEventListener("click", closeNowPlaying);
+
+// Swipe-down to dismiss the now-playing overlay (touch only).
+(function setupSwipeDismiss() {
+  let startY = null;
+  let dragging = false;
+
+  const onStart = (e) => {
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    // Only initiate drag from the top portion (handle + first 120px),
+    // so users can still interact with controls below.
+    const rect = nowPlaying.getBoundingClientRect();
+    if (y - rect.top > 140) return;
+    startY = y;
+    dragging = true;
+  };
+  const onMove = (e) => {
+    if (!dragging || startY == null) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = y - startY;
+    if (dy > 0) {
+      nowPlaying.style.transform = `translateY(${dy}px)`;
+    }
+  };
+  const onEnd = (e) => {
+    if (!dragging || startY == null) return;
+    const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    const dy = y - startY;
+    nowPlaying.style.transition = "transform .2s ease";
+    if (dy > 120) {
+      nowPlaying.style.transform = "translateY(100%)";
+      setTimeout(() => {
+        nowPlaying.style.transform = "";
+        nowPlaying.style.transition = "";
+        closeNowPlaying();
+      }, 200);
+    } else {
+      nowPlaying.style.transform = "";
+      setTimeout(() => { nowPlaying.style.transition = ""; }, 220);
+    }
+    startY = null;
+    dragging = false;
+  };
+
+  nowPlaying.addEventListener("touchstart", onStart, { passive: true });
+  nowPlaying.addEventListener("touchmove",  onMove,  { passive: true });
+  nowPlaying.addEventListener("touchend",   onEnd);
+})();
 
 // Detail sheet close handlers
 $$('[data-close]').forEach(b => b.addEventListener("click", closeSheet));
@@ -389,7 +518,11 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     togglePlay();
   } else if (e.code === "Escape") {
-    closeSheet();
+    if (nowPlaying.classList.contains("is-open")) {
+      closeNowPlaying();
+    } else {
+      closeSheet();
+    }
   } else if (e.code === "ArrowRight" && e.altKey) {
     playNext();
   } else if (e.code === "ArrowLeft" && e.altKey) {
