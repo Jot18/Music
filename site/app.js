@@ -197,8 +197,8 @@ function renderSection(section) {
   switch (section.id) {
     case "new_singles":  titleHtml = `New <em>Singles</em>`; break;
     case "new_albums":   titleHtml = `New <em>Albums</em> &amp; EPs`; break;
-    case "top_singles":  titleHtml = `Top 50 <em>Singles</em>`; break;
-    case "top_punjabi":  titleHtml = `Top 50 <em>Punjabi</em>`; break;
+    case "top_singles":  titleHtml = `Top 50 <em>Single Songs</em>`; break;
+    case "top_punjabi":  titleHtml = `Top 50 <em>Album Songs</em>`; break;
     default:             titleHtml = section.title;
   }
 

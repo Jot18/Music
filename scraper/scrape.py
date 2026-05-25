@@ -80,7 +80,7 @@ SECTIONS = [
     },
     {
         "id": "top_singles",
-        "title": "Top 50 Punjabi Singles",
+        "title": "Top 50 Single Songs",
         "url": f"{SOURCE}/topTracks.php?cat=Single%20Track",
         "kind": "single",
         "paginate": False,
@@ -88,7 +88,7 @@ SECTIONS = [
     },
     {
         "id": "top_punjabi",
-        "title": "Top 50 Punjabi (All)",
+        "title": "Top 50 Album Songs",
         "url": f"{SOURCE}/topTracks.php?cat=Punjabi",
         "kind": "single",
         "paginate": False,
@@ -106,6 +106,7 @@ FAST_PAGES         = int(os.environ.get("FAST_PAGES", "50"))
 PAGES_PER_SESSION  = int(os.environ.get("PAGES_PER_SESSION", "200"))
 MAX_DETAIL_FETCHES = int(os.environ.get("MAX_DETAIL_FETCHES", "1500"))
 RESET_DEEP         = os.environ.get("RESET_DEEP", "no").lower() == "yes"
+DETAIL_WORKERS     = int(os.environ.get("DETAIL_WORKERS", "6"))   # concurrent HTTP fetches
 
 DETAIL_DELAY_SECONDS  = 0.25
 LISTING_DELAY_SECONDS = 0.30
@@ -666,6 +667,100 @@ def _iso_timestamp(s: str | None) -> float:
         return 0.0
 
 
+def _process_detail_result(conn, row, html, kind, now_iso):
+    """Parse a fetched detail page and write the result to the DB.
+
+    Returns a list of (kind, id) tuples for any album child tracks queued.
+    Must be called from the main thread — sqlite3 connections aren't
+    thread-safe.
+    """
+    d = parse_detail(html, kind)
+
+    lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", kind)
+    title  = d["title"]  or row["title"]  or lt_title  or ""
+    artist = d["artist"] or row["artist"] or lt_artist or ""
+    if lt_title and lt_artist:
+        title, artist = lt_title, lt_artist
+
+    album_tracks_json = json.dumps(d["album_tracks"], ensure_ascii=False) if d["album_tracks"] else ""
+
+    conn.execute(
+        "UPDATE items SET "
+        "title=?, artist=?, music=?, lyrics=?, label=?, released=?, "
+        "playtime=?, plays=?, cover=?, "
+        "stream_url=?, mp3_320=?, mp3_128=?, mp3_48=?, zip_320=?, zip_128=?, "
+        "album_tracks=?, "
+        "has_detail=1, priority_queue=0, detail_fetched_at=?, last_seen_at=? "
+        "WHERE kind=? AND id=?",
+        (
+            title, artist, d["music"], d["lyrics"], d["label"], d["released"],
+            d["playtime"], d["plays"], d["cover"],
+            d["stream_url"], d["mp3_320"], d["mp3_128"], d["mp3_48"],
+            d["zip_320"], d["zip_128"],
+            album_tracks_json,
+            now_iso, now_iso,
+            kind, row["id"],
+        ),
+    )
+
+    queued: list[tuple[str, str]] = []
+    if kind == "album" and d["album_tracks"]:
+        for t in d["album_tracks"]:
+            track_url = f"{SOURCE}/get/{t['id']}/{t['slug']}.html"
+            upsert_listing_entry(conn, {
+                "id": t["id"], "slug": t["slug"], "url_kind": "get",
+                "detail_url": track_url,
+                "listing_text": f"{t['title']} - {artist}" if artist else t["title"],
+            }, "single", now_iso)
+            conn.execute(
+                "UPDATE items SET priority_queue=1 "
+                "WHERE kind='single' AND id=? AND has_detail=0",
+                (t["id"],),
+            )
+            queued.append(("single", t["id"]))
+    return title, queued
+
+
+def _concurrent_fetch_batch(rows, budget_remaining, label, conn, now_iso, workers):
+    """Run a batch of detail-page fetches in parallel.
+
+    HTTP fetches happen in worker threads; HTML parsing + DB writes happen on
+    the main thread (sqlite isn't thread-safe across connections, and the
+    parser is fine on the main thread). Returns (fetched_count, newly_queued).
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    rows = rows[:budget_remaining]  # cap upfront
+    if not rows:
+        return 0, []
+
+    fetched = 0
+    newly_queued: list[tuple[str, str]] = []
+    failures = 0
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        future_to_row = {pool.submit(fetch, row["detail_url"]): row for row in rows}
+        for fut in as_completed(future_to_row):
+            row = future_to_row[fut]
+            try:
+                html = fut.result()
+                title, queued = _process_detail_result(conn, row, html, row["kind"], now_iso)
+                newly_queued.extend(queued)
+                fetched += 1
+                if fetched % 50 == 0:
+                    conn.commit()
+                    print(f"  [{label}] {fetched}/{len(rows)}  last: {row['kind']}:{row['id']}  {title[:50]}",
+                          flush=True)
+            except Exception as e:
+                failures += 1
+                print(f"  ! detail failed {row['kind']}:{row['id']}: {e}", file=sys.stderr)
+
+    conn.commit()
+    if failures:
+        print(f"  [{label}] {failures} failures (will retry next run)")
+    return fetched, newly_queued
+
+
 def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
     """Fetch detail pages for items lacking them, up to `budget`.
 
@@ -674,11 +769,14 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
       2. Album child tracks queued during this run (so albums "just work"
          after a single scrape run instead of needing multiple passes).
       3. Everything else, newest first by item ID.
+
+    Fetches are parallelized via a thread pool (default 8 workers). This is
+    far below what djjohal can handle and an order of magnitude faster than
+    sequential.
     """
     priority = set()
     for r in conn.execute("SELECT kind, item_id FROM section_items"):
         priority.add((r["kind"], r["item_id"]))
-    # Homepage shows top 100 of each kind by item ID.
     for kind in ("single", "album"):
         for r in conn.execute(
             "SELECT kind, id FROM items WHERE kind=? "
@@ -686,13 +784,11 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
             (kind,),
         ):
             priority.add((r["kind"], r["id"]))
-    # Plus anything explicitly queued as "high priority" (album child tracks).
     for r in conn.execute(
         "SELECT kind, id FROM items WHERE has_detail=0 AND priority_queue=1"
     ):
         priority.add((r["kind"], r["id"]))
 
-    # All pending rows, fetched newest-first by ID.
     rows = conn.execute(
         "SELECT * FROM items WHERE has_detail=0 "
         "ORDER BY CAST(id AS INTEGER) DESC"
@@ -703,122 +799,26 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
                        -int(r["id"]) if r["id"].isdigit() else 0)
     )
 
-    print(f"\n[detail] {len(rows)} items pending detail. budget={budget}")
-    fetched = 0
-    # Track child tracks queued by albums during this pass, so we can
-    # fetch them in a follow-up sub-pass before exhausting the budget on
-    # totally unrelated items.
-    newly_queued_children: list[tuple[str, str]] = []  # (kind, id)
+    print(f"\n[detail] {len(rows)} items pending. budget={budget} workers={DETAIL_WORKERS}")
+    fetched, newly_queued = _concurrent_fetch_batch(
+        rows, budget, "main", conn, now_iso, DETAIL_WORKERS
+    )
 
-    for row in rows:
-        if fetched >= budget:
-            print(f"  budget exhausted at {fetched}; remaining will pick up next run")
-            break
-        try:
-            html = fetch(row["detail_url"])
-            d = parse_detail(html, row["kind"])
-
-            lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", row["kind"])
-            title  = d["title"]  or row["title"]  or lt_title  or ""
-            artist = d["artist"] or row["artist"] or lt_artist or ""
-            if lt_title and lt_artist:
-                title, artist = lt_title, lt_artist
-
-            album_tracks_json = json.dumps(d["album_tracks"], ensure_ascii=False) if d["album_tracks"] else ""
-
-            conn.execute(
-                "UPDATE items SET "
-                "title=?, artist=?, music=?, lyrics=?, label=?, released=?, "
-                "playtime=?, plays=?, cover=?, "
-                "stream_url=?, mp3_320=?, mp3_128=?, mp3_48=?, zip_320=?, zip_128=?, "
-                "album_tracks=?, "
-                "has_detail=1, priority_queue=0, detail_fetched_at=?, last_seen_at=? "
-                "WHERE kind=? AND id=?",
-                (
-                    title, artist, d["music"], d["lyrics"], d["label"], d["released"],
-                    d["playtime"], d["plays"], d["cover"],
-                    d["stream_url"], d["mp3_320"], d["mp3_128"], d["mp3_48"],
-                    d["zip_320"], d["zip_128"],
-                    album_tracks_json,
-                    now_iso, now_iso,
-                    row["kind"], row["id"],
-                ),
-            )
-
-            # If this was an album, also queue its child tracks as singles so
-            # their detail pages get fetched. We mark them priority_queue=1 so
-            # they get picked up in the second sub-pass below.
-            if row["kind"] == "album" and d["album_tracks"]:
-                for t in d["album_tracks"]:
-                    track_url = f"{SOURCE}/get/{t['id']}/{t['slug']}.html"
-                    upsert_listing_entry(conn, {
-                        "id": t["id"], "slug": t["slug"], "url_kind": "get",
-                        "detail_url": track_url,
-                        "listing_text": f"{t['title']} - {artist}" if artist else t["title"],
-                    }, "single", now_iso)
-                    conn.execute(
-                        "UPDATE items SET priority_queue=1 "
-                        "WHERE kind='single' AND id=? AND has_detail=0",
-                        (t["id"],),
-                    )
-                    newly_queued_children.append(("single", t["id"]))
-
-            fetched += 1
-            if fetched % 25 == 0:
-                conn.commit()
-                print(f"  [{fetched}/{budget}]  {row['kind']}:{row['id']}  {title[:60]}", flush=True)
-            time.sleep(DETAIL_DELAY_SECONDS)
-        except Exception as e:
-            print(f"  ! detail failed {row['kind']}:{row['id']}: {e}", file=sys.stderr)
-
-    conn.commit()
-
-    # Second sub-pass: fetch album child tracks queued during pass 1, so
-    # users can actually play album tracks right after a scrape run.
-    if newly_queued_children and fetched < budget:
-        # Pull fresh rows (some may have already been fetched if they happened
-        # to be in the priority pool).
-        ids = [iid for _, iid in newly_queued_children]
+    # Second sub-pass: album child tracks queued during pass 1.
+    if newly_queued and fetched < budget:
+        ids = list({iid for _, iid in newly_queued})
         placeholders = ",".join("?" for _ in ids)
         child_rows = conn.execute(
             f"SELECT * FROM items WHERE kind='single' AND has_detail=0 AND id IN ({placeholders})",
             ids,
         ).fetchall()
         if child_rows:
-            print(f"\n[detail/children] fetching {len(child_rows)} album-track details "
-                  f"(budget remaining: {budget - fetched})")
-            for row in child_rows:
-                if fetched >= budget:
-                    print(f"  budget exhausted at {fetched} during child pass")
-                    break
-                try:
-                    html = fetch(row["detail_url"])
-                    d = parse_detail(html, "single")
-                    lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", "single")
-                    title  = d["title"]  or row["title"]  or lt_title  or ""
-                    artist = d["artist"] or row["artist"] or lt_artist or ""
-                    if lt_title and lt_artist:
-                        title, artist = lt_title, lt_artist
-                    conn.execute(
-                        "UPDATE items SET "
-                        "title=?, artist=?, music=?, lyrics=?, label=?, released=?, "
-                        "playtime=?, plays=?, cover=?, "
-                        "stream_url=?, mp3_320=?, mp3_128=?, mp3_48=?, zip_320=?, zip_128=?, "
-                        "has_detail=1, priority_queue=0, detail_fetched_at=?, last_seen_at=? "
-                        "WHERE kind='single' AND id=?",
-                        (title, artist, d["music"], d["lyrics"], d["label"], d["released"],
-                         d["playtime"], d["plays"], d["cover"],
-                         d["stream_url"], d["mp3_320"], d["mp3_128"], d["mp3_48"],
-                         d["zip_320"], d["zip_128"],
-                         now_iso, now_iso, row["id"]),
-                    )
-                    fetched += 1
-                    if fetched % 25 == 0:
-                        conn.commit()
-                    time.sleep(DETAIL_DELAY_SECONDS)
-                except Exception as e:
-                    print(f"  ! child detail failed single:{row['id']}: {e}", file=sys.stderr)
-            conn.commit()
+            print(f"\n[detail/children] {len(child_rows)} album-track details "
+                  f"(remaining budget: {budget - fetched})")
+            ch_fetched, _ = _concurrent_fetch_batch(
+                child_rows, budget - fetched, "children", conn, now_iso, DETAIL_WORKERS
+            )
+            fetched += ch_fetched
 
     print(f"[detail] done. fetched {fetched} pages this run.")
     return fetched

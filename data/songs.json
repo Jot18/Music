@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-25T00:10:55+00:00",
+  "generated_at": "2026-05-25T00:33:17+00:00",
   "stats": {
     "total_singles": 4795,
     "total_albums": 800,
@@ -8375,7 +8375,7 @@
     },
     {
       "id": "top_singles",
-      "title": "Top 50 Punjabi Singles",
+      "title": "Top 50 Single Songs",
       "kind": "single",
       "items": [
         {
@@ -9833,7 +9833,7 @@
     },
     {
       "id": "top_punjabi",
-      "title": "Top 50 Punjabi (All)",
+      "title": "Top 50 Album Songs",
       "kind": "single",
       "items": [
         {

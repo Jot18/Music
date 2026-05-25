@@ -3,122 +3,142 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#120a04" />
+<meta name="theme-color" content="#0a0a0b" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Saadi Awaaz · Punjabi Music</title>
-<meta name="description" content="Punjabi music — new singles, new albums, top singles, full searchable library." />
-<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23120a04'/><circle cx='32' cy='32' r='14' fill='none' stroke='%23f0b323' stroke-width='3'/><circle cx='32' cy='32' r='3' fill='%23f0b323'/></svg>" />
+<meta name="description" content="A private Punjabi music library." />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230a0a0b'/><path d='M32 14 L46 50 L18 50 Z' fill='%23ffb547'/></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<!-- LOGIN GATE — shown by default; app.js removes it after auth succeeds. -->
+<!-- LOGIN GATE -->
 <div class="gate" id="loginGate">
   <form class="gate__card" id="loginForm" autocomplete="off">
-    <svg class="gate__mark" viewBox="0 0 64 64" width="56" height="56" aria-hidden="true">
-      <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
-      <circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
-      <circle cx="32" cy="32" r="3" fill="currentColor"/>
-    </svg>
-    <h1 class="gate__title">Saadi&nbsp;Awaaz</h1>
-    <p class="gate__sub">Private music library — enter your access code</p>
+    <div class="gate__logo">
+      <svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+        <path d="M32 14 L46 50 L18 50 Z" fill="currentColor"/>
+      </svg>
+    </div>
+    <h1 class="gate__title">Saadi Awaaz</h1>
+    <p class="gate__sub">Enter your access code</p>
     <input id="loginInput" type="password" class="gate__input"
-           placeholder="Access code" aria-label="Access code"
+           placeholder="••••••••" aria-label="Access code"
            autocomplete="current-password" />
-    <button class="gate__btn" type="submit">Enter</button>
-    <p class="gate__error" id="loginError" hidden>Incorrect code. Try again.</p>
+    <button class="gate__btn" type="submit">Continue</button>
+    <p class="gate__error" id="loginError" hidden>Incorrect code</p>
   </form>
 </div>
 
-<div class="grain" aria-hidden="true"></div>
+<!-- APP SHELL -->
+<div class="app" id="appShell" hidden>
 
-<!-- APP SHELL — hidden until auth succeeds, then unhidden by app.js -->
-<div id="appShell" hidden>
-
-<header class="masthead">
-  <div class="masthead__row">
-    <div class="brand">
-      <svg class="brand__mark" viewBox="0 0 64 64" width="40" height="40" aria-hidden="true">
-        <circle cx="32" cy="32" r="22" fill="none" stroke="currentColor" stroke-width="2"/>
-        <circle cx="32" cy="32" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
-        <circle cx="32" cy="32" r="3" fill="currentColor"/>
+  <aside class="sidebar" aria-label="Navigation">
+    <div class="sidebar__brand">
+      <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
+        <path d="M32 14 L46 50 L18 50 Z" fill="currentColor"/>
       </svg>
-      <div class="brand__text">
-        <span class="brand__name">Saadi&nbsp;Awaaz</span>
-        <span class="brand__sub">Punjabi Music</span>
-      </div>
+      <span class="sidebar__brand-name">Saadi Awaaz</span>
     </div>
-    <div class="masthead__meta">
-      <span class="dot"></span>
-      <span id="lastUpdated">live feed</span>
-      <button id="logoutBtn" class="masthead__logout" aria-label="Log out" title="Log out">
-        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M10 17l5-5-5-5v3H3v4h7v3zm5-15h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-4v-2h4V4h-4V2z" fill="currentColor"/></svg>
+
+    <nav class="sidebar__nav" aria-label="Sections">
+      <a href="#new_singles" class="navlink">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+        <span>New Singles</span>
+      </a>
+      <a href="#new_albums" class="navlink">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
+        <span>New Albums</span>
+      </a>
+      <a href="#top_singles" class="navlink">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 17l6-6 4 4 8-8v4h2V3h-8v2h4l-6 6-4-4-8 8z"/></svg>
+        <span>Top 50 Singles</span>
+      </a>
+      <a href="#top_punjabi" class="navlink">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 4v3H3v3a4 4 0 0 0 4 4 5 5 0 0 0 4 2.9V20H7v2h10v-2h-4v-3.1a5 5 0 0 0 4-2.9 4 4 0 0 0 4-4V7h-4V4z"/></svg>
+        <span>Top 50 Album Songs</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__foot">
+      <span class="sidebar__updated" id="lastUpdated">syncing…</span>
+      <button id="logoutBtn" class="sidebar__logout" aria-label="Sign out">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M10 17l5-5-5-5v3H3v4h7v3zm5-15h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-4v-2h4V4h-4z"/></svg>
+        <span>Sign out</span>
       </button>
     </div>
-  </div>
-  <div class="masthead__hairline"></div>
+  </aside>
 
-  <div class="searchbar" role="search">
-    <svg class="searchbar__icon" viewBox="0 0 24 24" aria-hidden="true" width="20" height="20">
-      <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
-      <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <input id="searchInput" type="search" class="searchbar__input"
-           placeholder="Search artists, songs, albums, music directors, labels…"
-           aria-label="Search library"
-           autocomplete="off" autocorrect="off" spellcheck="false" />
-    <kbd class="searchbar__kbd">⌘K</kbd>
-    <button id="searchClear" class="searchbar__clear" aria-label="Clear search" hidden>&times;</button>
-  </div>
+  <main class="main">
 
-  <nav class="sectionnav" aria-label="Sections">
-    <a href="#new_singles" class="sectionnav__link">New Singles</a>
-    <a href="#new_albums"  class="sectionnav__link">New Albums</a>
-    <a href="#top_singles" class="sectionnav__link">Top 50 Singles</a>
-    <a href="#top_punjabi" class="sectionnav__link">Top 50 Punjabi</a>
-  </nav>
-</header>
+    <!-- STICKY HEADER (search + section tabs) -->
+    <div class="stickyhead">
+      <div class="search" role="search">
+        <svg class="search__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="searchInput" type="search" class="search__input"
+               placeholder="Search artists, songs, albums, music directors, labels"
+               aria-label="Search library"
+               autocomplete="off" autocorrect="off" spellcheck="false" />
+        <kbd class="search__kbd">⌘K</kbd>
+        <button id="searchClear" class="search__clear" aria-label="Clear search" hidden>×</button>
+      </div>
+    </div>
 
-<main id="app">
-  <div class="loading" id="loading">
-    <div class="loading__spinner"></div>
-    <p>Loading…</p>
-  </div>
-</main>
-
-</div><!-- /#appShell -->
+    <div id="app">
+      <div class="loading" id="loading">
+        <div class="loading__spinner"></div>
+        <p>Loading library…</p>
+      </div>
+    </div>
+  </main>
+</div>
 
 <!-- DETAIL SHEET -->
 <dialog id="detailSheet" class="sheet" aria-labelledby="sheetTitle">
-  <button class="sheet__close" aria-label="Close" data-close>&times;</button>
   <div class="sheet__inner">
-    <div class="sheet__cover-wrap">
-      <img id="sheetCover" class="sheet__cover" alt="" />
-    </div>
-    <div class="sheet__body">
-      <p class="sheet__kicker" id="sheetKicker"></p>
-      <h2 class="sheet__title" id="sheetTitle"></h2>
-      <p class="sheet__artist" id="sheetArtist"></p>
+    <button class="sheet__close" aria-label="Close" data-close>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
 
-      <dl class="sheet__facts" id="sheetFacts"></dl>
-
-      <div class="sheet__actions">
-        <button class="btn btn--primary" id="sheetPlayBtn">▶ &nbsp;Play</button>
+    <!-- LEFT COLUMN: cover + metadata -->
+    <div class="sheet__left">
+      <div class="sheet__cover-wrap">
+        <img id="sheetCover" class="sheet__cover" alt="" />
       </div>
 
-      <div class="sheet__tracks" id="sheetTracks" hidden></div>
+      <div class="sheet__leftmeta">
+        <p class="sheet__kicker" id="sheetKicker"></p>
+        <h2 class="sheet__title" id="sheetTitle"></h2>
+        <p class="sheet__artist" id="sheetArtist"></p>
 
+        <dl class="sheet__facts" id="sheetFacts"></dl>
+
+        <div class="sheet__actions">
+          <button class="btn btn--primary" id="sheetPlayBtn">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+            Play
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: tracks + downloads -->
+    <div class="sheet__right">
+      <div class="sheet__tracks" id="sheetTracks" hidden></div>
       <div class="sheet__downloads" id="sheetDownloads"></div>
     </div>
   </div>
 </dialog>
 
-<!-- PERSISTENT PLAYER (mini bar) — hidden until first play -->
+<!-- PERSISTENT PLAYER -->
 <div class="player" id="player" hidden>
   <button class="player__expand" id="btnExpand" aria-label="Expand player">
     <div class="player__cover-wrap">
@@ -132,14 +152,14 @@
   <audio id="audio" preload="none"></audio>
   <div class="player__controls">
     <button class="iconbtn" id="btnPrev" aria-label="Previous">
-      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6h2v12H6zM20 6v12L9 12z" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
     </button>
     <button class="iconbtn iconbtn--play" id="btnPlay" aria-label="Play/Pause">
-      <svg id="iconPlay" viewBox="0 0 24 24" width="20" height="20"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-      <svg id="iconPause" viewBox="0 0 24 24" width="20" height="20" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+      <svg id="iconPlay" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+      <svg id="iconPause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none"><path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
     </button>
     <button class="iconbtn" id="btnNext" aria-label="Next">
-      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M16 6h2v12h-2zM4 6v12l11-6z" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg>
     </button>
   </div>
   <div class="player__scrub">
@@ -147,14 +167,13 @@
     <div class="scrub" id="scrub"><div class="scrub__fill" id="scrubFill"></div></div>
     <span id="totTime">0:00</span>
   </div>
-  <button class="iconbtn player__close" id="btnClose" aria-label="Close player">&times;</button>
+  <button class="iconbtn player__close" id="btnClose" aria-label="Close player">×</button>
 </div>
 
-<!-- EXPANDED NOW-PLAYING (mobile full-screen) -->
+<!-- MOBILE NOW-PLAYING -->
 <div class="np" id="nowPlaying" hidden aria-hidden="true">
-  <div class="np__handle" id="npHandle" aria-label="Drag to dismiss"></div>
   <button class="np__chev" id="btnCollapse" aria-label="Collapse player">
-    <svg viewBox="0 0 24 24" width="22" height="22"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
   </button>
   <div class="np__cover-wrap">
     <img id="npCover" class="np__cover" alt="" />
@@ -172,14 +191,14 @@
   </div>
   <div class="np__controls">
     <button class="np__btn" id="npPrev" aria-label="Previous">
-      <svg viewBox="0 0 24 24" width="30" height="30"><path d="M6 6h2v12H6zM20 6v12L9 12z" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
     </button>
     <button class="np__btn np__btn--play" id="npPlay" aria-label="Play/Pause">
-      <svg id="npIconPlay" viewBox="0 0 24 24" width="36" height="36"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-      <svg id="npIconPause" viewBox="0 0 24 24" width="36" height="36" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>
+      <svg id="npIconPlay" viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+      <svg id="npIconPause" viewBox="0 0 24 24" width="34" height="34" aria-hidden="true" style="display:none"><path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
     </button>
     <button class="np__btn" id="npNext" aria-label="Next">
-      <svg viewBox="0 0 24 24" width="30" height="30"><path d="M16 6h2v12h-2zM4 6v12l11-6z" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg>
     </button>
   </div>
   <button class="np__source" id="npSource" type="button">View details</button>
