@@ -38,7 +38,16 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 [hidden] { display: none !important; }
 
-html, body {
+html {
+  /* Keep html as the natural scroll root. Don't put overflow restrictions
+     here — combining overflow-x: hidden with overscroll-behavior on the
+     same element caused a Chrome-on-Android bug where the page wouldn't
+     scroll at all (v7.10 issue: stuck at top of homepage, couldn't reach
+     items below the second row). */
+  background: var(--bg);
+}
+
+body {
   margin: 0;
   padding: 0;
   background: var(--bg);
@@ -48,10 +57,15 @@ html, body {
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
-  /* Stop Android Chrome's pull-to-refresh from firing when the user tries
-     to scroll up from the top of the page. We never want a refresh — this
-     is a SPA-style app, refreshing throws away the player state. */
+  /* Horizontal-overflow guard: any rogue wide content (long unbroken
+     strings, etc.) is clipped instead of forcing a horizontal scroll on
+     mobile. */
+  overflow-x: clip;
+  /* Disable Android Chrome's pull-to-refresh. `contain` (not `none`) keeps
+     this targeted to the page-level overscroll without affecting
+     overflow behavior. Applied to body only — on html it can interact
+     with other root properties and break vertical scrolling on some
+     Chrome builds. */
   overscroll-behavior-y: contain;
 }
 
