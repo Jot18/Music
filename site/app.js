@@ -125,13 +125,24 @@ const STATE = {
   // it came from. Clicking the now-playing bar/title re-opens that album's
   // sheet (with this track highlighted) instead of the single's detail.
   albumContext: null,  // the album item (or null when playing a standalone single)
-  // Current "view" — one of "home" or "artist:<name>" or "artists" (the list).
-  // Drives what renderAll() shows. Updated by hashchange.
+  // Current "view" — one of "home" or "artist:<name>" or "artists" (the list)
+  // or "browse:singles" / "browse:albums". Drives what renderAll() shows.
   view: "home",
   // Lazy index built from search.json the first time the Artists view opens.
-  // Map: normalized artist name -> { displayName, items: [search entries] }
   artistIndex: null,
+  // Per-section page number on the home view (1-indexed). Pagination uses
+  // the search index when total > the songs.json snapshot, so users can
+  // page through the full library straight from the homepage.
+  pages: { new_singles: 1, new_albums: 1, top_singles: 1, top_punjabi: 1 },
 };
+
+// How many items per page on the homepage sections. Top charts stay at
+// the fixed length the scraper produces (50) so they don't paginate; the
+// new_* sections grow to 50/page and can advance backward/forward
+// through the full library.
+const PAGE_SIZE_HOME = 50;
+// Infinite scroll batch when opening a dedicated browse view from a tab.
+const BROWSE_BATCH = 60;
 
 function $(sel, root = document) { return root.querySelector(sel); }
 function $$(sel, root = document) { return [...root.querySelectorAll(sel)]; }
@@ -251,28 +262,149 @@ function renderSection(section) {
     default:             titleHtml = section.title;
   }
 
-  const showing = section.items.length;
-  const total = section.total_available ?? showing;
-  let countText;
-  if (total > showing) {
-    countText = `${showing} shown · ${total.toLocaleString()} in library · search for more`;
-  } else {
-    countText = `${showing} ${section.kind === "album" ? "releases" : "tracks"}`;
+  // For new_singles / new_albums: paginate using the search index so the
+  // user can advance past the 100 items the homepage JSON ships with.
+  // For top charts: keep the original 50-item snapshot (no pagination —
+  // those ARE the top 50 by design).
+  const paginatable = (section.id === "new_singles" || section.id === "new_albums");
+
+  // Slim helper that ranks the search index newest-first by id.
+  const slimSorted = (kindLetter) => {
+    if (!STATE.searchIndex) return null;
+    return STATE.searchIndex
+      .filter(s => s.k === kindLetter)
+      .sort((a, b) => parseInt(b.i, 10) - parseInt(a.i, 10));
+  };
+
+  let pageItems = section.items;
+  let total = section.total_available ?? section.items.length;
+  let pageNum = STATE.pages[section.id] || 1;
+  let maxPage = 1;
+
+  if (paginatable) {
+    const slimAll = slimSorted(section.kind === "album" ? "a" : "s");
+    if (slimAll && slimAll.length > section.items.length) {
+      // Use the full library as the pagination source.
+      total = slimAll.length;
+      maxPage = Math.max(1, Math.ceil(total / PAGE_SIZE_HOME));
+      pageNum = Math.min(Math.max(pageNum, 1), maxPage);
+      const start = (pageNum - 1) * PAGE_SIZE_HOME;
+      const slice = slimAll.slice(start, start + PAGE_SIZE_HOME);
+      pageItems = slice.map((s) => {
+        const cached = ITEM_CACHE.get(`${section.kind}:${s.i}`);
+        return cached || expandSlim(s);
+      });
+    } else {
+      // Fallback to whatever songs.json shipped.
+      pageItems = section.items.slice(0, PAGE_SIZE_HOME);
+      maxPage = Math.max(1, Math.ceil(section.items.length / PAGE_SIZE_HOME));
+    }
   }
+
+  // Section header: title on the left, browse link on the right (no
+  // "search for more" / library-total verbiage).
   const head = el("div", { class: "section__head" },
     el("h2", { class: "section__title", html: titleHtml }),
-    el("span", { class: "section__count" }, countText)
   );
+  if (paginatable) {
+    // Right side: a "Browse all →" link that opens the infinite-scroll
+    // view for this kind.
+    const browseHref = section.kind === "album" ? "#browse/albums" : "#browse/singles";
+    head.append(el("a", {
+      class: "section__browse",
+      href: browseHref,
+      onclick: (e) => {
+        e.preventDefault();
+        openBrowse(section.kind === "album" ? "albums" : "singles");
+      },
+    }, `Browse all ${total.toLocaleString()} →`));
+  }
 
   const grid = el("div", { class: "grid" });
-  if (section.items.length === 0) {
+  if (pageItems.length === 0) {
     grid.append(el("div", { class: "empty" }, "Waiting for next scrape…"));
   }
-  section.items.forEach((item, idx) => {
+  pageItems.forEach((item, idx) => {
     grid.append(buildCard(item, isChart, idx));
   });
 
-  return el("section", { class: "section", id: section.id }, head, grid);
+  const sectEl = el("section", { class: "section", id: section.id }, head, grid);
+
+  // Pager controls (page numbers and prev/next), only for paginatable sections
+  // that have more than one page.
+  if (paginatable && maxPage > 1) {
+    sectEl.append(renderPager(section.id, pageNum, maxPage));
+  }
+
+  return sectEl;
+}
+
+function renderPager(sectionId, current, maxPage) {
+  const pager = el("nav", { class: "pager", "aria-label": "Pagination" });
+
+  const go = (n) => {
+    n = Math.min(Math.max(1, n), maxPage);
+    if (n === STATE.pages[sectionId]) return;
+    STATE.pages[sectionId] = n;
+    // Re-render just this section in place to avoid jumping the whole page.
+    const old = document.getElementById(sectionId);
+    if (old && _homeData) {
+      const sectionData = _homeData.sections.find(s => s.id === sectionId);
+      if (sectionData) {
+        const fresh = renderSection(sectionData);
+        old.replaceWith(fresh);
+        // Scroll the section title back into view for context.
+        fresh.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  };
+
+  const btnPrev = el("button", {
+    class: "pager__btn pager__btn--nav",
+    type: "button",
+    "aria-label": "Previous page",
+    disabled: current === 1 ? "" : null,
+    onclick: () => go(current - 1),
+  }, "← Prev");
+  pager.append(btnPrev);
+
+  // Page numbers — show first, last, current, and immediate neighbors;
+  // collapse the rest into "…".
+  const numbers = [];
+  const add = (n) => { if (!numbers.includes(n) && n >= 1 && n <= maxPage) numbers.push(n); };
+  add(1);
+  add(current - 1);
+  add(current);
+  add(current + 1);
+  add(maxPage);
+  numbers.sort((a, b) => a - b);
+
+  let lastShown = 0;
+  for (const n of numbers) {
+    if (n > lastShown + 1) {
+      pager.append(el("span", { class: "pager__ellipsis", "aria-hidden": "true" }, "…"));
+    }
+    const btn = el("button", {
+      class: "pager__btn" + (n === current ? " is-current" : ""),
+      type: "button",
+      "aria-label": `Page ${n}`,
+      "aria-current": n === current ? "page" : null,
+      onclick: () => go(n),
+    }, String(n));
+    pager.append(btn);
+    lastShown = n;
+  }
+
+  const btnNext = el("button", {
+    class: "pager__btn pager__btn--nav",
+    type: "button",
+    "aria-label": "Next page",
+    disabled: current === maxPage ? "" : null,
+    onclick: () => go(current + 1),
+  }, "Next →");
+  pager.append(btnNext);
+
+  return pager;
 }
 
 function buildCard(item, isChart, idx) {
@@ -336,6 +468,7 @@ function buildCard(item, isChart, idx) {
   return el("button", {
     class: "card",
     type: "button",
+    "data-item": `${item.kind}:${item.id}`,
     onclick: () => openSheet(item),
   },
     coverWrap,
@@ -360,8 +493,12 @@ function renderAll(data) {
     if (!isNaN(d.getTime())) {
       const opts = { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
       const total = (data.stats?.total_singles ?? 0) + (data.stats?.total_albums ?? 0);
-      $("#lastUpdated").textContent =
-        `updated ${d.toLocaleString(undefined, opts)} · library: ${total.toLocaleString()}`;
+      const desktopText = `updated ${d.toLocaleString(undefined, opts)} · library: ${total.toLocaleString()}`;
+      const mobileText  = `updated ${d.toLocaleString(undefined, opts)}`;
+      const dEl = $("#lastUpdated");
+      const mEl = $("#lastUpdatedMobile");
+      if (dEl) dEl.textContent = desktopText;
+      if (mEl) mEl.textContent = mobileText;
     }
   }
 
@@ -437,22 +574,50 @@ function fillSheet(item) {
 
   const facts = $("#sheetFacts");
   facts.innerHTML = "";
-  // Compute a sensible playtime for the album: if the album itself has
-  // one, use it. Otherwise, look at each child track — djjohal's per-
-  // track detail page typically shows the ALBUM's total playtime, so
-  // any track that's been detail-fetched will reveal it. We start with
-  // whatever we have and let the async hydration below upgrade the cell
-  // once child details arrive.
-  let displayPlaytime = item.playtime || "";
-  if (isAlbum && !displayPlaytime && Array.isArray(item.album_tracks)) {
+
+  // Helper: parse a "MM:SS" or "HH:MM:SS" string into seconds.
+  // Returns 0 for unparseable input.
+  const parsePlaytimeSec = (s) => {
+    if (!s) return 0;
+    const m = String(s).trim().match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);
+    if (!m) return 0;
+    const a = parseInt(m[1], 10), b = parseInt(m[2], 10), c = m[3] ? parseInt(m[3], 10) : null;
+    return c == null ? a * 60 + b : a * 3600 + b * 60 + c;
+  };
+  const formatPlaytimeSec = (sec) => {
+    sec = Math.max(0, Math.round(sec));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  };
+
+  // Compute a sensible playtime for the album:
+  //   - If djjohal lists per-track playtimes that VARY across children,
+  //     they're genuine track lengths — sum them for the album total.
+  //   - If all children have the SAME value, that value IS the album
+  //     total (djjohal repeats it on every track page) — use as-is.
+  //   - Falls back to whatever the album row itself stores.
+  const computeAlbumPlaytime = () => {
+    if (!Array.isArray(item.album_tracks) || !item.album_tracks.length) return item.playtime || "";
+    const childPts = [];
     for (const t of item.album_tracks) {
       const cached = ITEM_CACHE.get(`single:${t.id}`);
-      if (cached && cached.playtime) {
-        displayPlaytime = cached.playtime;
-        break;
-      }
+      if (cached && cached.playtime) childPts.push(cached.playtime);
     }
-  }
+    if (!childPts.length) return item.playtime || "";
+    const unique = [...new Set(childPts)];
+    if (unique.length === 1) {
+      // All identical: djjohal's "album total" repeated. Use the value.
+      return unique[0];
+    }
+    // Varied: sum the per-track lengths.
+    const total = childPts.reduce((acc, s) => acc + parsePlaytimeSec(s), 0);
+    return formatPlaytimeSec(total);
+  };
+
+  let displayPlaytime = isAlbum ? computeAlbumPlaytime() : (item.playtime || "");
 
   // Albums don't have a per-track play count — that field is meaningful
   // only for singles, so hide it on the album sheet.
@@ -478,20 +643,28 @@ function fillSheet(item) {
     facts.append(dd);
   }
 
-  // For albums missing a playtime, fire off a single fetch for the first
-  // child track to discover the value, then update the DOM in place.
-  if (isAlbum && !displayPlaytime && Array.isArray(item.album_tracks) && item.album_tracks.length) {
-    (async () => {
-      for (const t of item.album_tracks.slice(0, 3)) {
-        const full = await loadItemDetail("single", t.id);
-        if (full && full.playtime) {
-          // The sheet may have been closed or refilled by now — check.
+  // For albums where we don't yet have any child playtimes, fetch detail
+  // for ALL children (parallel) and recompute the playtime once they
+  // arrive. Updates the DOM cell in place.
+  if (isAlbum && Array.isArray(item.album_tracks) && item.album_tracks.length) {
+    const allCached = item.album_tracks.every(t => {
+      const c = ITEM_CACHE.get(`single:${t.id}`);
+      return c && c.playtime;
+    });
+    if (!allCached) {
+      (async () => {
+        // Fetch all children in parallel; loadItemDetail caches into ITEM_CACHE.
+        await Promise.all(
+          item.album_tracks.map(t => loadItemDetail("single", t.id).catch(() => null))
+        );
+        if (!$("#detailSheet").open) return;
+        const fresh = computeAlbumPlaytime();
+        if (fresh) {
           const cell = $('#sheetFacts dd[data-fact="playtime"]');
-          if (cell) cell.textContent = full.playtime;
-          break;
+          if (cell) cell.textContent = fresh;
         }
-      }
-    })();
+      })();
+    }
   }
 
   const playBtn = $("#sheetPlayBtn");
@@ -1488,18 +1661,36 @@ async function renderArtistView(name) {
     albumsHost.append(grid);
   }
 
-  // Hydrate covers asynchronously for items not in the homepage cache.
-  // (Only the first ~20 visible to keep this cheap.)
-  const visible = [...singles.slice(0, 12), ...albums.slice(0, 8)];
-  for (const it of visible) {
+  // Lazy-hydrate covers for items not already in the homepage cache.
+  // Uses IntersectionObserver so we only fetch detail for cards as they
+  // come into view — covers all the artist's history without flooding
+  // the network on initial load.
+  const allItems = [...singles, ...albums];
+  const cardsByKey = new Map();
+  for (const it of allItems) {
     const k = `${it.kind}:${it.id}`;
-    if (ITEM_CACHE.has(k)) continue;
-    loadItemDetail(it.kind, it.id).then((full) => {
-      if (!full || !full.cover) return;
-      // Update any card image still on screen.
-      const sel = `[data-item="${k}"] img`;
-      for (const img of $$(sel)) img.src = safeUrl(full.cover);
-    }).catch(() => {});
+    if (ITEM_CACHE.has(k) && ITEM_CACHE.get(k).cover) continue;
+    const sel = `[data-item="${k}"]`;
+    const cardEl = document.querySelector(sel);
+    if (cardEl) cardsByKey.set(k, { item: it, el: cardEl, loaded: false });
+  }
+  if (cardsByKey.size) {
+    const coverIo = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        const k = e.target.getAttribute("data-item");
+        const entry = cardsByKey.get(k);
+        if (!entry || entry.loaded) continue;
+        entry.loaded = true;
+        coverIo.unobserve(e.target);
+        loadItemDetail(entry.item.kind, entry.item.id).then((full) => {
+          if (!full || !full.cover) return;
+          const img = e.target.querySelector("img");
+          if (img) img.src = safeUrl(full.cover);
+        }).catch(() => {});
+      }
+    }, { rootMargin: "300px 0px" });
+    for (const { el } of cardsByKey.values()) coverIo.observe(el);
   }
 }
 
@@ -1595,7 +1786,97 @@ function rerenderHome() {
   else boot();  // first time only
 }
 
-// Hash routing: handle #artist/Name and #artists.
+// ---------------- Browse view (infinite scroll) ----------------------------
+//
+// Opened from the Singles / Albums tabs (mobile bottom bar) or the
+// "Browse all →" link in each homepage section. Pulls from the full
+// search index so the user can scroll through the entire library.
+async function openBrowse(kind /* "singles" | "albums" */) {
+  const hash = `#browse/${kind}`;
+  if (location.hash !== hash) {
+    history.pushState(null, "", hash);
+  }
+  await renderBrowseView(kind);
+}
+
+async function renderBrowseView(kind) {
+  STATE.view = `browse:${kind}`;
+  const app = $("#app");
+  app.innerHTML = "";
+
+  const isAlbum = kind === "albums";
+  const title = isAlbum ? "All Albums &amp; EPs" : "All Singles";
+  const kicker = "Browse · newest first";
+
+  const back = el("button", {
+    class: "artist__back",
+    type: "button",
+    "aria-label": "Back",
+    onclick: () => goHome(),
+  },
+    el("span", { html: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>` }),
+    "Back",
+  );
+  const header = el("section", { class: "artist__header" },
+    back,
+    el("p", { class: "artist__kicker" }, kicker),
+    el("h1", { class: "artist__name", html: title }),
+    el("p", { class: "artist__count", id: "browseCount" }, "Loading…"),
+  );
+
+  const gridHost = el("section", { class: "section" });
+  const grid = el("div", { class: "grid" });
+  gridHost.append(grid);
+
+  const sentinel = el("div", { class: "browse-sentinel", "aria-hidden": "true" });
+
+  app.append(header, gridHost, sentinel);
+  window.scrollTo({ top: 0, behavior: "auto" });
+
+  const items = await ensureSearchIndex();
+  if (!items) {
+    $("#browseCount").textContent = "Couldn't load library";
+    return;
+  }
+
+  const kindLetter = isAlbum ? "a" : "s";
+  const all = items
+    .filter(s => s.k === kindLetter)
+    .sort((a, b) => parseInt(b.i, 10) - parseInt(a.i, 10));
+
+  $("#browseCount").textContent =
+    `${all.length.toLocaleString()} ${isAlbum ? "releases" : "tracks"} · scroll to load more`;
+
+  let cursor = 0;
+  const loadMore = () => {
+    if (STATE.view !== `browse:${kind}`) return;  // navigated away
+    const end = Math.min(cursor + BROWSE_BATCH, all.length);
+    for (let i = cursor; i < end; i++) {
+      const s = all[i];
+      const cached = ITEM_CACHE.get(`${isAlbum ? "album" : "single"}:${s.i}`);
+      const item = cached || expandSlim(s);
+      grid.append(buildCard(item, false, i));
+    }
+    cursor = end;
+    if (cursor >= all.length) {
+      io.disconnect();
+      sentinel.remove();
+    }
+  };
+
+  // IntersectionObserver loads more when the sentinel scrolls into view.
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) loadMore();
+    }
+  }, { rootMargin: "400px 0px" });
+  io.observe(sentinel);
+
+  // Always render the first batch up front.
+  loadMore();
+}
+
+// Hash routing: #artist/Name, #artists, #browse/singles, #browse/albums.
 window.addEventListener("hashchange", () => routeFromHash());
 function routeFromHash() {
   const h = (location.hash || "").slice(1);  // drop the '#'
@@ -1610,8 +1891,14 @@ function routeFromHash() {
     renderArtistsList();
     return;
   }
+  if (h.startsWith("browse/")) {
+    const kind = h.slice("browse/".length);
+    if (kind === "singles" || kind === "albums") {
+      renderBrowseView(kind);
+      return;
+    }
+  }
   // Any other hash (#new_singles etc.) means we're on the home view.
-  // Don't re-render if we're already there — let the scrollspy do its job.
   if (STATE.view !== "home") {
     STATE.view = "home";
     rerenderHome();
@@ -1738,10 +2025,13 @@ function setupScrollSpy() {
   for (const a of links) {
     a.addEventListener("click", (e) => {
       const id = a.getAttribute("href")?.slice(1);
-      // #artists and #artist/... aren't sections to scroll to — they're
-      // view routes. Let the link's default behavior fire hashchange
+      // #artists, #artist/..., #browse/... aren't sections to scroll to —
+      // they're view routes. Let the link's default fire the hash change
       // and routeFromHash() take over.
-      if (!id || id === "artists" || id.startsWith("artist/")) return;
+      if (!id ||
+          id === "artists" ||
+          id.startsWith("artist/") ||
+          id.startsWith("browse/")) return;
       const sect = document.getElementById(id);
       if (sect) {
         e.preventDefault();
@@ -1801,9 +2091,16 @@ async function boot() {
     const data = await res.json();
     renderAll(data);
     setupScrollSpy();
-    // If the page was opened with #artist/... or #artists, route to it
-    // now that base data is loaded.
-    if (location.hash.startsWith("#artist")) routeFromHash();
+    // Eager-load the search index so pagination on the home sections
+    // can show the library-wide page count immediately. Once loaded,
+    // re-render the home view to refresh the page numbers.
+    ensureSearchIndex().then(() => {
+      if (STATE.view === "home") rerenderHome();
+    });
+    // If the page was opened with a deep-link route, handle it now.
+    if (location.hash.startsWith("#artist") || location.hash.startsWith("#browse/")) {
+      routeFromHash();
+    }
   } catch (err) {
     console.error(err);
     $("#app").innerHTML = `

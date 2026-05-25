@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Saadi Awaaz · Punjabi Music</title>
+<title>Punjabi Music</title>
 <meta name="description" content="A private Punjabi music library." />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230a0a0b'/><path d='M32 14 L46 50 L18 50 Z' fill='%23ffb547'/></svg>" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=7.15" />
+<link rel="stylesheet" href="styles.css?v=7.16" />
 </head>
 <body>
 
@@ -27,7 +27,7 @@
         <path d="M32 14 L46 50 L18 50 Z" fill="currentColor"/>
       </svg>
     </div>
-    <h1 class="gate__title">Saadi Awaaz</h1>
+    <h1 class="gate__title">Punjabi Music</h1>
     <p class="gate__sub">Enter your access code</p>
     <input id="loginInput" type="password" class="gate__input"
            placeholder="••••••••" aria-label="Access code"
@@ -46,16 +46,16 @@
       <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
         <path d="M32 14 L46 50 L18 50 Z" fill="currentColor"/>
       </svg>
-      <span class="sidebar__brand-name">Saadi Awaaz</span>
+      <span class="sidebar__brand-name">Punjabi Music</span>
     </div>
 
     <nav class="sidebar__nav" aria-label="Sections">
-      <a href="#new_singles" class="navlink">
+      <a href="#browse/singles" class="navlink">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
         <span class="navlink__full">New Singles</span>
         <span class="navlink__short">Singles</span>
       </a>
-      <a href="#new_albums" class="navlink">
+      <a href="#browse/albums" class="navlink">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
         <span class="navlink__full">New Albums</span>
         <span class="navlink__short">Albums</span>
@@ -92,8 +92,9 @@
       <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
         <path d="M32 14 L46 50 L18 50 Z" fill="currentColor"/>
       </svg>
-      <span>Saadi Awaaz</span>
+      <span>Punjabi Music</span>
     </div>
+    <span class="topbar__updated" id="lastUpdatedMobile" aria-live="polite">syncing…</span>
     <button id="mobileLogout" class="topbar__logout" aria-label="Sign out">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 17l5-5-5-5v3H3v4h7v3zm5-15h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-4v-2h4V4h-4z"/></svg>
     </button>
@@ -127,11 +128,11 @@
 
   <!-- MOBILE BOTTOM TAB BAR -->
   <nav class="tabbar" aria-label="Sections">
-    <a href="#new_singles" class="tab">
+    <a href="#browse/singles" class="tab">
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
       <span>Singles</span>
     </a>
-    <a href="#new_albums" class="tab">
+    <a href="#browse/albums" class="tab">
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
       <span>Albums</span>
     </a>
@@ -265,6 +266,6 @@
   </a>
 </div>
 
-<script src="app.js?v=7.15"></script>
+<script src="app.js?v=7.16"></script>
 </body>
 </html>
