@@ -68,9 +68,12 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 });
 
-document.getElementById("logoutBtn").addEventListener("click", () => {
+const logoutHandler = () => {
   if (confirm("Log out of Saadi Awaaz?")) logout();
-});
+};
+document.getElementById("logoutBtn").addEventListener("click", logoutHandler);
+const mobileLogout = document.getElementById("mobileLogout");
+if (mobileLogout) mobileLogout.addEventListener("click", logoutHandler);
 
 // On load, decide whether to show the gate or boot the app.
 (async () => {
@@ -104,6 +107,10 @@ const STATE = {
   currentItem: null,
   searchIndex: null,
   searchLoading: false,
+  // When the user plays a track from an album sheet, we remember which album
+  // it came from. Clicking the now-playing bar/title re-opens that album's
+  // sheet (with this track highlighted) instead of the single's detail.
+  albumContext: null,  // the album item (or null when playing a standalone single)
 };
 
 function $(sel, root = document) { return root.querySelector(sel); }
@@ -133,6 +140,22 @@ function sanitizeFilename(s) {
     .replace(/\s+/g, " ")
     .replace(/^[\s\-_.]+|[\s\-_.]+$/g, "")
     .slice(0, 120) || "track";
+}
+
+/**
+ * Build a YouTube search URL for an item. We can't get the exact video ID
+ * without YouTube's API, but linking to a search query for "{artist} {title}"
+ * works well — YouTube's first result is almost always the song. On mobile,
+ * Chrome/Safari prompt to open in the YouTube app if it's installed.
+ */
+function youtubeSearchUrl(item) {
+  if (!item) return "";
+  const parts = [item.artist, item.title]
+    .map(s => (s || "").trim())
+    .filter(Boolean);
+  if (parts.length === 0) return "";
+  const q = encodeURIComponent(parts.join(" "));
+  return `https://www.youtube.com/results?search_query=${q}`;
 }
 
 function el(tag, attrs = {}, ...children) {
@@ -243,7 +266,10 @@ function buildCard(item, isChart, idx) {
         openSheet(item);
       } else {
         const full = await ensureFullItem(item);
-        if (full) playItem(full);
+        if (full) {
+          STATE.albumContext = null;  // playing a standalone single
+          playItem(full);
+        }
       }
     },
     html: isAlbum
@@ -353,7 +379,25 @@ function fillSheet(item) {
   }
 
   const playBtn = $("#sheetPlayBtn");
+  const ytBtn   = $("#sheetYtBtn");
   const tracksHost = $("#sheetTracks");
+
+  // YouTube button — always populated. For singles links to the song; for
+  // albums links to a "{artist} {title} full album" search.
+  const ytUrl = isAlbum
+    ? (() => {
+        const parts = [item.artist, item.title].map(s => (s || "").trim()).filter(Boolean);
+        const q = encodeURIComponent([...parts, "full album"].join(" "));
+        return parts.length ? `https://www.youtube.com/results?search_query=${q}` : "";
+      })()
+    : youtubeSearchUrl(item);
+
+  if (ytUrl) {
+    ytBtn.href = ytUrl;
+    ytBtn.style.display = "";
+  } else {
+    ytBtn.style.display = "none";
+  }
 
   if (isAlbum) {
     // Albums: hide the Play button, show track list (if we have it).
@@ -364,7 +408,10 @@ function fillSheet(item) {
     playBtn.style.display = "";
     playBtn.onclick = async () => {
       const full = await ensureFullItem(item);
-      if (full) playItem(full);
+      if (full) {
+        STATE.albumContext = null;  // playing a standalone single
+        playItem(full);
+      }
       closeSheet();
     };
     const hasStream = item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48);
@@ -411,9 +458,12 @@ function renderAlbumTracks(album, host) {
   host.append(el("h3", {}, "Tracks"));
 
   const list = el("div", { class: "tracklist" });
+  // If the currently playing track is one of these, mark it.
+  const playingTrackId = (STATE.currentItem && STATE.albumContext &&
+                          STATE.albumContext.id === album.id) ? STATE.currentItem.id : null;
   tracks.forEach((t, idx) => {
     const btn = el("button", {
-      class: "track",
+      class: "track" + (playingTrackId === t.id ? " is-playing" : ""),
       type: "button",
       "data-track-id": t.id,
       onclick: async () => {
@@ -431,6 +481,10 @@ function renderAlbumTracks(album, host) {
           if (!STATE.playlist.find(p => p.id === t.id && p.kind === "single")) {
             STATE.playlist.push(full);
           }
+          // Remember which album we're playing from. The player's title click
+          // and the mobile now-playing "view details" button use this to
+          // re-open the album sheet instead of the single's detail page.
+          STATE.albumContext = album;
           playItem(full);
           $$(".track.is-playing", host).forEach(e => e.classList.remove("is-playing"));
           btn.classList.add("is-playing");
@@ -490,8 +544,137 @@ function playItem(item) {
   $("#npTitle").textContent = item.title || "Untitled";
   $("#npArtist").textContent = item.artist || "";
 
+  // If now-playing overlay is open, refresh its YouTube link too.
+  const npYt = $("#npYtBtn");
+  if (npYt) {
+    const ytUrl = youtubeSearchUrl(item);
+    if (ytUrl) { npYt.href = ytUrl; npYt.style.display = ""; }
+    else npYt.style.display = "none";
+  }
+
   audio.src = safeUrl(stream);
   audio.play().catch(err => console.warn("Playback failed:", err));
+
+  // Tell the OS (car infotainment, lock screen, BT widgets) what's playing.
+  updateMediaSession(item);
+}
+
+// ---------------- MediaSession (for Bluetooth / car / lock screen) ---------
+// The MediaSession API publishes "what's playing" to the OS so external
+// surfaces — your Tesla's media widget, Android Auto, iOS lock screen,
+// Chromecast, etc. — show the right title/artist/cover and route their
+// transport buttons (prev/next/play/pause/seek) back here.
+
+const ORIGINAL_TITLE = document.title;
+
+function updateMediaSession(item) {
+  if (!("mediaSession" in navigator)) return;
+
+  const title  = item.title  || "Untitled";
+  const artist = item.artist || "";
+  // If this track is part of an album we're playing through, surface the
+  // album name as "album" for the OS UI.
+  const albumName = (STATE.albumContext && STATE.albumContext.title) || "";
+
+  // Replace the page title while playing. Tesla and many other surfaces
+  // fall back to the page title if MediaSession isn't honored — this way
+  // they at least show the song name instead of "Saadi Awaaz · Punjabi Music".
+  document.title = artist ? `${title} — ${artist}` : title;
+
+  try {
+    const artworkUrl = safeUrl(item.cover) || "";
+    const artwork = artworkUrl ? [
+      // Several sizes hint to the OS; same URL is fine since djjohal
+      // doesn't serve responsive variants.
+      { src: artworkUrl, sizes: "96x96",   type: "image/jpeg" },
+      { src: artworkUrl, sizes: "192x192", type: "image/jpeg" },
+      { src: artworkUrl, sizes: "256x256", type: "image/jpeg" },
+      { src: artworkUrl, sizes: "384x384", type: "image/jpeg" },
+      { src: artworkUrl, sizes: "512x512", type: "image/jpeg" },
+    ] : [];
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title,
+      artist,
+      album: albumName,
+      artwork,
+    });
+  } catch (e) {
+    console.warn("MediaSession metadata failed:", e);
+  }
+}
+
+function clearMediaSession() {
+  document.title = ORIGINAL_TITLE;
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.playbackState = "none";
+    } catch {}
+  }
+}
+
+function updateMediaSessionPosition() {
+  if (!("mediaSession" in navigator) || !audio.duration || !isFinite(audio.duration)) return;
+  try {
+    navigator.mediaSession.setPositionState({
+      duration: audio.duration,
+      position: Math.min(audio.currentTime, audio.duration),
+      playbackRate: audio.playbackRate || 1,
+    });
+  } catch (e) {
+    // Some browsers throw if duration is Infinity or position > duration.
+    // Silently ignore — non-critical.
+  }
+}
+
+function setupMediaSessionHandlers() {
+  if (!("mediaSession" in navigator)) return;
+  const ms = navigator.mediaSession;
+
+  // Helper that swallows errors for handlers the browser doesn't support
+  // (e.g. older Safari doesn't have "seekto").
+  const setHandler = (action, fn) => {
+    try { ms.setActionHandler(action, fn); }
+    catch (e) { /* unsupported on this platform */ }
+  };
+
+  setHandler("play",  () => { if (audio.src) audio.play().catch(() => {}); });
+  setHandler("pause", () => { if (audio.src) audio.pause(); });
+  setHandler("previoustrack", () => { playPrev(); });
+  setHandler("nexttrack",     () => { playNext(); });
+
+  // Small skip handlers — Tesla and most car surfaces show 10/30s skip
+  // buttons. These give them something to do.
+  setHandler("seekbackward", (d) => {
+    if (!audio.src) return;
+    const off = (d && d.seekOffset) || 10;
+    audio.currentTime = Math.max(0, audio.currentTime - off);
+    updateMediaSessionPosition();
+  });
+  setHandler("seekforward", (d) => {
+    if (!audio.src) return;
+    const off = (d && d.seekOffset) || 10;
+    audio.currentTime = Math.min(audio.duration || Infinity, audio.currentTime + off);
+    updateMediaSessionPosition();
+  });
+
+  // The big one — lets the car's progress bar tap work. Without this,
+  // dragging the Tesla scrub bar does nothing.
+  setHandler("seekto", (d) => {
+    if (!audio.src || !d || typeof d.seekTime !== "number") return;
+    if (d.fastSeek && "fastSeek" in audio) {
+      audio.fastSeek(d.seekTime);
+    } else {
+      audio.currentTime = d.seekTime;
+    }
+    updateMediaSessionPosition();
+  });
+
+  setHandler("stop", () => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
 }
 
 function togglePlay() {
@@ -523,9 +706,22 @@ function setPlayingUI(isPlaying) {
   $("#npIconPause").style.display = isPlaying ? "" : "none";
 }
 
-audio.addEventListener("play",  () => setPlayingUI(true));
-audio.addEventListener("pause", () => setPlayingUI(false));
+audio.addEventListener("play",  () => {
+  setPlayingUI(true);
+  if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing";
+  updateMediaSessionPosition();
+});
+audio.addEventListener("pause", () => {
+  setPlayingUI(false);
+  if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
+  updateMediaSessionPosition();
+});
 audio.addEventListener("ended", playNext);
+// `loadedmetadata` fires when duration becomes known — push position state so
+// the car widget gets the right total length right after a track change.
+audio.addEventListener("loadedmetadata", updateMediaSessionPosition);
+audio.addEventListener("durationchange", updateMediaSessionPosition);
+audio.addEventListener("seeked", updateMediaSessionPosition);
 
 audio.addEventListener("timeupdate", () => {
   const cur = audio.currentTime || 0;
@@ -539,6 +735,13 @@ audio.addEventListener("timeupdate", () => {
   const pct = tot > 0 ? (cur / tot) * 100 : 0;
   $("#scrubFill").style.width   = `${pct}%`;
   $("#npScrubFill").style.width = `${pct}%`;
+  // Throttle: only push position to MediaSession every ~1s, since timeupdate
+  // fires ~4x/sec and the OS will smooth-interpolate between updates.
+  if (!updateMediaSessionPosition._last ||
+      Date.now() - updateMediaSessionPosition._last > 900) {
+    updateMediaSessionPosition._last = Date.now();
+    updateMediaSessionPosition();
+  }
 });
 
 $("#btnPlay").addEventListener("click", togglePlay);
@@ -550,16 +753,40 @@ $("#btnClose").addEventListener("click", () => {
   $("#player").hidden = true;
   document.body.classList.remove("has-player");
   closeNowPlaying();
+  clearMediaSession();
 });
+
+/**
+ * Open the appropriate detail sheet for whatever is currently playing.
+ * If we're playing a track from an album, re-open the album sheet (with
+ * the current track highlighted). Otherwise open the single's detail.
+ */
+function openCurrentContext() {
+  if (STATE.albumContext) {
+    openSheet(STATE.albumContext);
+  } else if (STATE.currentItem) {
+    openSheet(STATE.currentItem);
+  }
+}
 
 $("#npPlay").addEventListener("click", togglePlay);
 $("#npPrev").addEventListener("click", playPrev);
 $("#npNext").addEventListener("click", playNext);
 $("#npSource").addEventListener("click", () => {
-  if (STATE.currentItem) {
-    closeNowPlaying();
-    openSheet(STATE.currentItem);
-  }
+  closeNowPlaying();
+  openCurrentContext();
+});
+
+// Desktop: clicking the player's title/meta opens the album sheet (or the
+// single's detail). The cover-area `btnExpand` still opens the now-playing
+// overlay on touch devices.
+$("#playerTitle").addEventListener("click", (e) => {
+  e.stopPropagation();
+  openCurrentContext();
+});
+$("#playerArtist").addEventListener("click", (e) => {
+  e.stopPropagation();
+  openCurrentContext();
 });
 
 function seekFromEvent(e, scrubEl) {
@@ -581,6 +808,16 @@ function openNowPlaying() {
   $("#npCover").src    = safeUrl(STATE.currentItem.cover) || "";
   $("#npTitle").textContent  = STATE.currentItem.title || "Untitled";
   $("#npArtist").textContent = STATE.currentItem.artist || "";
+  const npYt = $("#npYtBtn");
+  const ytUrl = youtubeSearchUrl(STATE.currentItem);
+  if (npYt) {
+    if (ytUrl) {
+      npYt.href = ytUrl;
+      npYt.style.display = "";
+    } else {
+      npYt.style.display = "none";
+    }
+  }
   nowPlaying.hidden = false;
   nowPlaying.setAttribute("aria-hidden", "false");
   nowPlaying.classList.add("is-open");
@@ -595,49 +832,115 @@ function closeNowPlaying() {
 }
 
 $("#btnExpand").addEventListener("click", () => {
-  if (!document.body.classList.contains("is-touch")) return;
-  openNowPlaying();
+  if (document.body.classList.contains("is-touch")) {
+    openNowPlaying();
+  } else {
+    openCurrentContext();
+  }
 });
 $("#btnCollapse").addEventListener("click", closeNowPlaying);
 
 (function setupSwipeDismiss() {
+  // Track raw touch state.
+  let startX = null;
   let startY = null;
-  let dragging = false;
+  let dragging = false;        // committed to a drag (past the threshold)
+  let direction = null;        // 'down' | 'left'
+  let startedOnControl = false;
+
+  const THRESHOLD = 10;        // px to move before committing to a drag
+  const DISMISS_DISTANCE = 100;  // px to actually close the overlay
+
+  const isOnControl = (target) => {
+    // Don't start a drag if the touch began on something interactive:
+    // play/prev/next buttons, the progress bar (scrubbing), close chevron,
+    // details button, YouTube link. Without this, scrubbing would also
+    // drag the overlay away.
+    if (!target || !target.closest) return false;
+    return !!target.closest(
+      "button, a, input, .scrub, .np__btn, .np__chev, .np__details, .np__yt, .np__source"
+    );
+  };
+
   const onStart = (e) => {
-    const y = e.touches ? e.touches[0].clientY : e.clientY;
-    const rect = nowPlaying.getBoundingClientRect();
-    if (y - rect.top > 140) return;
-    startY = y;
-    dragging = true;
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX;
+    startY = t.clientY;
+    dragging = false;
+    direction = null;
+    startedOnControl = isOnControl(e.target);
   };
+
   const onMove = (e) => {
-    if (!dragging || startY == null) return;
-    const y = e.touches ? e.touches[0].clientY : e.clientY;
-    const dy = y - startY;
-    if (dy > 0) nowPlaying.style.transform = `translateY(${dy}px)`;
+    if (startX == null) return;
+    if (startedOnControl) return;  // never hijack a scrub/button touch
+
+    const t = e.touches ? e.touches[0] : e;
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      // Decide whether this is actually a drag, and which way.
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      if (absX < THRESHOLD && absY < THRESHOLD) return;
+      // Direction = the dominant axis. Down or left only — swipes
+      // up/right don't dismiss.
+      if (absY >= absX && dy > 0)       direction = "down";
+      else if (absX > absY && dx < 0)   direction = "left";
+      else { startX = null; startY = null; return; }  // wrong way, ignore
+      dragging = true;
+    }
+
+    if (direction === "down" && dy > 0) {
+      nowPlaying.style.transform = `translateY(${dy}px)`;
+    } else if (direction === "left" && dx < 0) {
+      nowPlaying.style.transform = `translateX(${dx}px)`;
+    }
   };
+
   const onEnd = (e) => {
-    if (!dragging || startY == null) return;
-    const y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    const dy = y - startY;
-    nowPlaying.style.transition = "transform .2s ease";
-    if (dy > 120) {
-      nowPlaying.style.transform = "translateY(100%)";
+    if (startX == null) { return; }
+    if (!dragging) {  // never moved past threshold — let it be a tap
+      startX = null; startY = null;
+      return;
+    }
+    const t = e.changedTouches ? e.changedTouches[0] : e;
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    nowPlaying.style.transition = "transform .2s cubic-bezier(.2,.7,.2,1)";
+
+    const shouldClose =
+      (direction === "down" && dy > DISMISS_DISTANCE) ||
+      (direction === "left" && dx < -DISMISS_DISTANCE);
+
+    if (shouldClose) {
+      // Animate the overlay out in the direction the user pushed it.
+      nowPlaying.style.transform = direction === "down"
+        ? "translateY(100%)"
+        : "translateX(-100%)";
       setTimeout(() => {
         nowPlaying.style.transform = "";
         nowPlaying.style.transition = "";
         closeNowPlaying();
       }, 200);
     } else {
+      // Snap back.
       nowPlaying.style.transform = "";
       setTimeout(() => { nowPlaying.style.transition = ""; }, 220);
     }
+
+    startX = null;
     startY = null;
     dragging = false;
+    direction = null;
   };
+
   nowPlaying.addEventListener("touchstart", onStart, { passive: true });
   nowPlaying.addEventListener("touchmove",  onMove,  { passive: true });
-  nowPlaying.addEventListener("touchend",   onEnd);
+  nowPlaying.addEventListener("touchend",   onEnd,   { passive: true });
+  nowPlaying.addEventListener("touchcancel", onEnd,  { passive: true });
 })();
 
 // ---------------- Search ---------------------------------------------------
@@ -770,14 +1073,72 @@ $("#detailSheet").addEventListener("click", (e) => {
   if (!inside) closeSheet();
 });
 
+// ---------------- Section scrollspy ----------------------------------------
+
+function setupScrollSpy() {
+  // Tracks both desktop .navlink and mobile .tab — they share href="#section_id"
+  const links = [...$$(".navlink"), ...$$(".tab")];
+  if (!links.length) return;
+
+  const setActive = (sectionId) => {
+    for (const a of links) {
+      const isMatch = a.getAttribute("href") === `#${sectionId}`;
+      a.classList.toggle("is-active", isMatch);
+    }
+  };
+
+  // Smooth scroll on link click.
+  for (const a of links) {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href")?.slice(1);
+      const sect = id && document.getElementById(id);
+      if (sect) {
+        e.preventDefault();
+        sect.scrollIntoView({ behavior: "smooth", block: "start" });
+        setActive(id);  // immediate feedback
+      }
+    });
+  }
+
+  const sectionIds = new Set();
+  for (const a of links) {
+    const id = a.getAttribute("href")?.slice(1);
+    if (id) sectionIds.add(id);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    // Pick the entry most in view among intersecting ones.
+    let best = null;
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      if (!best || e.intersectionRatio > best.intersectionRatio) best = e;
+    }
+    if (best) setActive(best.target.id);
+  }, { rootMargin: "-30% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] });
+
+  // Observe sections that exist NOW; renderAll happens before setupScrollSpy
+  // so the section <section> elements are already in the DOM.
+  for (const id of sectionIds) {
+    const sect = document.getElementById(id);
+    if (sect) observer.observe(sect);
+  }
+}
+
 // ---------------- Boot -----------------------------------------------------
 
 async function boot() {
+  // Register MediaSession action handlers once, ahead of any playback.
+  // These connect the OS (car infotainment, lock screen, BT remotes) to
+  // this page's transport controls. Doing it here means the handlers exist
+  // before the first track plays.
+  setupMediaSessionHandlers();
+
   try {
     const res = await fetch(`data/songs.json?t=${Date.now()}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderAll(data);
+    setupScrollSpy();
   } catch (err) {
     console.error(err);
     $("#app").innerHTML = `

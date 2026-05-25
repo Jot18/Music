@@ -38,6 +38,7 @@
 <!-- APP SHELL -->
 <div class="app" id="appShell" hidden>
 
+  <!-- DESKTOP/TABLET SIDEBAR -->
   <aside class="sidebar" aria-label="Navigation">
     <div class="sidebar__brand">
       <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
@@ -49,19 +50,23 @@
     <nav class="sidebar__nav" aria-label="Sections">
       <a href="#new_singles" class="navlink">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
-        <span>New Singles</span>
+        <span class="navlink__full">New Singles</span>
+        <span class="navlink__short">Singles</span>
       </a>
       <a href="#new_albums" class="navlink">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
-        <span>New Albums</span>
+        <span class="navlink__full">New Albums</span>
+        <span class="navlink__short">Albums</span>
       </a>
       <a href="#top_singles" class="navlink">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3 17l6-6 4 4 8-8v4h2V3h-8v2h4l-6 6-4-4-8 8z"/></svg>
-        <span>Top 50 Singles</span>
+        <span class="navlink__full">Top 50 Singles</span>
+        <span class="navlink__short">Top Singles</span>
       </a>
       <a href="#top_punjabi" class="navlink">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 4v3H3v3a4 4 0 0 0 4 4 5 5 0 0 0 4 2.9V20H7v2h10v-2h-4v-3.1a5 5 0 0 0 4-2.9 4 4 0 0 0 4-4V7h-4V4z"/></svg>
-        <span>Top 50 Album Songs</span>
+        <span class="navlink__full">Top 50 Album Songs</span>
+        <span class="navlink__short">Top Album</span>
       </a>
     </nav>
 
@@ -74,9 +79,22 @@
     </div>
   </aside>
 
+  <!-- MOBILE TOP BAR -->
+  <header class="topbar">
+    <div class="topbar__brand">
+      <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true">
+        <path d="M32 14 L46 50 L18 50 Z" fill="currentColor"/>
+      </svg>
+      <span>Saadi Awaaz</span>
+    </div>
+    <button id="mobileLogout" class="topbar__logout" aria-label="Sign out">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 17l5-5-5-5v3H3v4h7v3zm5-15h4a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2h-4v-2h4V4h-4z"/></svg>
+    </button>
+  </header>
+
   <main class="main">
 
-    <!-- STICKY HEADER (search + section tabs) -->
+    <!-- STICKY SEARCH -->
     <div class="stickyhead">
       <div class="search" role="search">
         <svg class="search__icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -84,7 +102,7 @@
           <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <input id="searchInput" type="search" class="search__input"
-               placeholder="Search artists, songs, albums, music directors, labels"
+               placeholder="Search artists, songs, albums…"
                aria-label="Search library"
                autocomplete="off" autocorrect="off" spellcheck="false" />
         <kbd class="search__kbd">⌘K</kbd>
@@ -99,6 +117,26 @@
       </div>
     </div>
   </main>
+
+  <!-- MOBILE BOTTOM TAB BAR -->
+  <nav class="tabbar" aria-label="Sections">
+    <a href="#new_singles" class="tab">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>
+      <span>Singles</span>
+    </a>
+    <a href="#new_albums" class="tab">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/></svg>
+      <span>Albums</span>
+    </a>
+    <a href="#top_singles" class="tab">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 17l6-6 4 4 8-8v4h2V3h-8v2h4l-6 6-4-4-8 8z"/></svg>
+      <span>Top Singles</span>
+    </a>
+    <a href="#top_punjabi" class="tab">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M7 4v3H3v3a4 4 0 0 0 4 4 5 5 0 0 0 4 2.9V20H7v2h10v-2h-4v-3.1a5 5 0 0 0 4-2.9 4 4 0 0 0 4-4V7h-4V4z"/></svg>
+      <span>Top Album</span>
+    </a>
+  </nav>
 </div>
 
 <!-- DETAIL SHEET -->
@@ -108,7 +146,6 @@
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
     </button>
 
-    <!-- LEFT COLUMN: cover + metadata -->
     <div class="sheet__left">
       <div class="sheet__cover-wrap">
         <img id="sheetCover" class="sheet__cover" alt="" />
@@ -124,13 +161,16 @@
         <div class="sheet__actions">
           <button class="btn btn--primary" id="sheetPlayBtn">
             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
-            Play
+            <span>Play</span>
           </button>
+          <a class="btn btn--yt" id="sheetYtBtn" target="_blank" rel="noopener" href="#">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M21.58 7.19a2.51 2.51 0 0 0-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42A2.51 2.51 0 0 0 2.42 7.19 26.06 26.06 0 0 0 2 12a26.06 26.06 0 0 0 .42 4.81 2.51 2.51 0 0 0 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42a2.51 2.51 0 0 0 1.77-1.77A26.06 26.06 0 0 0 22 12a26.06 26.06 0 0 0-.42-4.81zM10 15V9l5.2 3z"/></svg>
+            <span>YouTube</span>
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: tracks + downloads -->
     <div class="sheet__right">
       <div class="sheet__tracks" id="sheetTracks" hidden></div>
       <div class="sheet__downloads" id="sheetDownloads"></div>
@@ -138,9 +178,9 @@
   </div>
 </dialog>
 
-<!-- PERSISTENT PLAYER -->
+<!-- MINI PLAYER -->
 <div class="player" id="player" hidden>
-  <button class="player__expand" id="btnExpand" aria-label="Expand player">
+  <button class="player__expand" id="btnExpand" aria-label="Open now playing">
     <div class="player__cover-wrap">
       <img id="playerCover" alt="" />
     </div>
@@ -170,10 +210,13 @@
   <button class="iconbtn player__close" id="btnClose" aria-label="Close player">×</button>
 </div>
 
-<!-- MOBILE NOW-PLAYING -->
+<!-- MOBILE NOW-PLAYING (full screen) -->
 <div class="np" id="nowPlaying" hidden aria-hidden="true">
   <button class="np__chev" id="btnCollapse" aria-label="Collapse player">
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+  </button>
+  <button class="np__details" id="npSource" type="button" aria-label="View album/track details">
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
   </button>
   <div class="np__cover-wrap">
     <img id="npCover" class="np__cover" alt="" />
@@ -201,7 +244,10 @@
       <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg>
     </button>
   </div>
-  <button class="np__source" id="npSource" type="button">View details</button>
+  <a class="np__yt" id="npYtBtn" target="_blank" rel="noopener" href="#">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M21.58 7.19a2.51 2.51 0 0 0-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42A2.51 2.51 0 0 0 2.42 7.19 26.06 26.06 0 0 0 2 12a26.06 26.06 0 0 0 .42 4.81 2.51 2.51 0 0 0 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42a2.51 2.51 0 0 0 1.77-1.77A26.06 26.06 0 0 0 22 12a26.06 26.06 0 0 0-.42-4.81zM10 15V9l5.2 3z"/></svg>
+    <span>Watch on YouTube</span>
+  </a>
 </div>
 
 <script src="app.js"></script>
