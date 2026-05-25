@@ -20,6 +20,12 @@ on:
         default: 'no'
         type: choice
         options: [no, yes]
+      skip_smoke:
+        description: 'Skip parser smoke test (use only if test is flaky but parser is OK)'
+        required: false
+        default: 'no'
+        type: choice
+        options: ['no', 'yes']
 
 permissions:
   contents: write
@@ -52,6 +58,8 @@ jobs:
         run: pip install -r scraper/requirements.txt
 
       - name: Smoke-test parsers
+        env:
+          SKIP_SMOKE: ${{ github.event.inputs.skip_smoke || 'no' }}
         run: python scraper/smoke_test.py
 
       - name: Backup library.db

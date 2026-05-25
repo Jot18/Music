@@ -49,6 +49,10 @@ html, body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  /* Stop Android Chrome's pull-to-refresh from firing when the user tries
+     to scroll up from the top of the page. We never want a refresh — this
+     is a SPA-style app, refreshing throws away the player state. */
+  overscroll-behavior-y: contain;
 }
 
 body { min-height: 100vh; }
@@ -1225,32 +1229,46 @@ button { font: inherit; }
   .card__title { font-size: 13px; }
   .card__artist { font-size: 11px; }
 
-  /* Sheet full-bleed */
+  /* Sheet full-bleed
+     Mobile scroll strategy: put overflow-y: auto on the <dialog> itself,
+     not on .sheet__inner. Why: on Android Chrome, when a touch lands on
+     a <dialog>, the browser's gesture system looks for the nearest
+     scrollable ancestor — and prefers the dialog over its children for
+     scroll target selection. If only .sheet__inner has overflow, Chrome
+     sees the dialog as non-scrollable, lets the touchmove bubble to
+     body, and pull-to-refresh activates instead of scrolling the sheet.
+     Putting the scroll on the dialog directly fixes both: real touch-
+     scroll works AND pull-to-refresh is suppressed (overscroll-behavior
+     contain prevents the bubble). */
   .sheet {
     width: 100%;
     max-width: 100%;
+    height: 92vh;
     max-height: 92vh;
     margin: auto 0 0;
     border-radius: 20px 20px 0 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   .sheet[open] { animation: sheetUp .3s cubic-bezier(.2,.7,.2,1); }
   @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
-  /* On mobile, the inner is ONE scrollable column (left stacked above right).
-     Without this, .sheet__left and .sheet__right each get their own scroll
-     bar, and the album tracks below the cover become unreachable. */
+  /* Inner becomes a normal in-flow block — the dialog scrolls, not this. */
   .sheet__inner {
     border-radius: 20px 20px 0 0;
     border-left: 0; border-right: 0; border-bottom: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    max-height: 92vh;
+    max-height: none;
+    overflow: visible;
+    display: block;
+    min-height: 100%;
   }
   .sheet__left,
   .sheet__right {
-    overflow-y: visible;   /* defer scrolling to .sheet__inner */
-    overflow-x: hidden;
+    overflow: visible;
   }
   .sheet__left {
+    display: flex;
     flex-direction: column;
     align-items: stretch;
     padding: 18px;
@@ -1262,14 +1280,17 @@ button { font: inherit; }
     margin: 0 auto;
     max-width: 240px;
   }
-  .sheet__right { padding: 18px; padding-bottom: 32px; }
+  .sheet__right { padding: 18px; padding-bottom: 40px; }
+  /* Close button: pinned to top-right of the sheet via fixed positioning so
+     it doesn't scroll away with content. Inside <dialog open>, fixed is
+     relative to the viewport, which is what we want for a full-bleed sheet. */
   .sheet__close {
+    position: fixed;
     width: 38px;
     height: 38px;
-    top: 14px;
+    top: calc(8vh + 14px);  /* below the gap above the dialog */
     right: 14px;
-    /* Stays in place while the sheet content scrolls under it. */
-    position: fixed;
+    z-index: 6;
   }
 
   /* Player full-width */

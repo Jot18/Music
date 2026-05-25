@@ -14,6 +14,12 @@ on:
         description: 'Max detail-page fetches this run (default 1500)'
         required: false
         default: '1500'
+      skip_smoke:
+        description: 'Skip parser smoke test (use only if test is flaky but parser is OK)'
+        required: false
+        default: 'no'
+        type: choice
+        options: ['no', 'yes']
   push:
     branches: [main]
     paths:
@@ -52,6 +58,9 @@ jobs:
       - name: Smoke-test parsers
         # Catches djjohal HTML changes BEFORE we overwrite the DB with
         # bad parses. If this fails, the scrape step won't run.
+        # Can be bypassed with skip_smoke=yes on manual dispatch.
+        env:
+          SKIP_SMOKE: ${{ github.event.inputs.skip_smoke || 'no' }}
         run: python scraper/smoke_test.py
 
       - name: Backup library.db

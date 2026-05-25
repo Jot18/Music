@@ -216,6 +216,11 @@ def _ensure_columns(conn):
         ("album_tracks",   "TEXT"),
         ("discovery_rank", "INTEGER"),   # legacy, kept for back-compat
         ("priority_queue", "INTEGER NOT NULL DEFAULT 0"),
+        # Resolved YouTube watch URL for this item, populated lazily during
+        # detail fetch for homepage-priority items. Lets the site link the
+        # YouTube button directly to the song's video instead of a search
+        # results page. Empty string when we couldn't resolve.
+        ("youtube_url",    "TEXT NOT NULL DEFAULT ''"),
     ]
     for col, col_type in additions:
         if col not in existing:
@@ -329,6 +334,57 @@ def fetch(url: str) -> str:
             last_err = e
             time.sleep(1.5 * (attempt + 1))
     raise RuntimeError(f"Failed to fetch {url}: {last_err}")
+
+
+# Match a YouTube videoId in the search results HTML. The first occurrence
+# is the top-ranked search result. Pattern looks for the JSON field that
+# YouTube embeds in ytInitialData: "videoId":"XXXXXXXXXXX".
+_YT_VIDEO_ID_RE = re.compile(r'"videoId":"([A-Za-z0-9_-]{11})"')
+
+
+def resolve_youtube_url(title: str, artist: str, *, is_album: bool = False) -> str:
+    """Search YouTube for "{artist} {title}" and return the first video's URL.
+
+    Returns "" on any failure. The scraper continues without the YT URL —
+    the site falls back to a search-results link in that case.
+
+    Why this exists: users want the YouTube button to take them straight to
+    the song's video, not a search results page. We resolve it once at
+    harvest time and cache it in the DB.
+
+    Costs ~500-1000ms per call, so we only invoke this for items in the
+    homepage feed (top 100 by ID per kind + the two Top 50 charts ≈ 300
+    items). Re-resolves on each detail fetch even if cached — YouTube
+    sometimes removes videos, and we want to keep the link valid.
+    """
+    title = (title or "").strip()
+    artist = (artist or "").strip()
+    if not title:
+        return ""
+
+    parts = [artist, title]
+    if is_album:
+        parts.append("full album")
+    query = " ".join(p for p in parts if p)
+    url = f"https://www.youtube.com/results?search_query={requests.utils.quote(query)}"
+
+    try:
+        r = requests.get(url, headers={
+            **HEADERS,
+            # YouTube serves different HTML to different UA strings. The
+            # desktop UA gives us ytInitialData embedded in the page, which
+            # is what our regex matches against.
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+        }, timeout=15)
+        if r.status_code != 200:
+            return ""
+        m = _YT_VIDEO_ID_RE.search(r.text)
+        if not m:
+            return ""
+        return f"https://www.youtube.com/watch?v={m.group(1)}"
+    except Exception:
+        return ""
 
 
 def build_page_url(section_url: str, page: int) -> str:
@@ -821,7 +877,81 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
             fetched += ch_fetched
 
     print(f"[detail] done. fetched {fetched} pages this run.")
+
+    # ---- YouTube URL resolution phase --------------------------------------
+    # For homepage-priority items that have detail but no YouTube URL yet,
+    # search YouTube and store the top result. This makes the YouTube
+    # button on the site link directly to the song's video instead of a
+    # search results page.
+    #
+    # Budget intentionally small: this is the homepage feed only (top 100
+    # per kind by ID + the two Top 50 charts ≈ ~300 items total). We don't
+    # do this for every item in the catalog — it would take too long and
+    # YouTube might rate-limit a GH Actions IP.
+    yt_resolved = _resolve_youtube_for_priority(conn, priority, now_iso)
+    if yt_resolved:
+        print(f"[youtube] resolved {yt_resolved} watch URLs")
+
     return fetched
+
+
+def _resolve_youtube_for_priority(conn, priority_set, now_iso) -> int:
+    """Resolve YouTube watch URLs for priority items that lack one.
+
+    Returns the number newly resolved.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    if not priority_set:
+        return 0
+    # Walk the priority set and pick rows that have detail but no youtube_url.
+    rows = []
+    for (kind, item_id) in priority_set:
+        r = conn.execute(
+            "SELECT kind, id, title, artist, youtube_url, has_detail "
+            "FROM items WHERE kind=? AND id=?",
+            (kind, item_id),
+        ).fetchone()
+        if r and r["has_detail"] and not (r["youtube_url"] or "").strip() and (r["title"] or "").strip():
+            rows.append(r)
+    if not rows:
+        return 0
+
+    print(f"\n[youtube] resolving watch URLs for {len(rows)} priority items "
+          f"(workers={DETAIL_WORKERS})")
+
+    resolved_count = 0
+    # Use fewer workers than the djjohal pool — YouTube is more rate-limit
+    # sensitive than djjohal.
+    yt_workers = max(1, min(DETAIL_WORKERS, 4))
+    with ThreadPoolExecutor(max_workers=yt_workers) as pool:
+        future_to_row = {
+            pool.submit(
+                resolve_youtube_url,
+                r["title"], r["artist"],
+                is_album=(r["kind"] == "album"),
+            ): r
+            for r in rows
+        }
+        for fut in as_completed(future_to_row):
+            r = future_to_row[fut]
+            try:
+                yt_url = fut.result() or ""
+            except Exception:
+                yt_url = ""
+            # Always update — even an empty string acts as a "we tried, give up"
+            # marker for now. Next run can retry by clearing this field.
+            if yt_url:
+                conn.execute(
+                    "UPDATE items SET youtube_url=? WHERE kind=? AND id=?",
+                    (yt_url, r["kind"], r["id"]),
+                )
+                resolved_count += 1
+                if resolved_count % 25 == 0:
+                    conn.commit()
+                    print(f"  [youtube] {resolved_count}/{len(rows)}")
+    conn.commit()
+    return resolved_count
 
 
 # ===========================================================================
@@ -855,10 +985,22 @@ def row_to_item_dict(row: sqlite3.Row, slim: bool = False) -> dict:
             "zip128":  row["zip_128"]   or "",
         },
         "album_tracks": album_tracks,
+        # Pre-resolved YouTube watch URL when we have one; empty string
+        # means "we don't know yet — use a search fallback in the site".
+        "youtube_url": _safe_col(row, "youtube_url"),
         "first_seen_at": row["first_seen_at"],
         "last_seen_at":  row["last_seen_at"],
     })
     return base
+
+
+def _safe_col(row, name):
+    """sqlite3.Row throws KeyError if column doesn't exist. Defensive get
+    for newly-added columns when reading from older row instances."""
+    try:
+        return (row[name] or "") if name in row.keys() else ""
+    except (IndexError, KeyError):
+        return ""
 
 
 def export_homepage(conn, now_iso: str):

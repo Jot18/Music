@@ -143,13 +143,19 @@ function sanitizeFilename(s) {
 }
 
 /**
- * Build a YouTube search URL for an item. We can't get the exact video ID
- * without YouTube's API, but linking to a search query for "{artist} {title}"
- * works well — YouTube's first result is almost always the song. On mobile,
- * Chrome/Safari prompt to open in the YouTube app if it's installed.
+ * Best YouTube URL for an item. Prefers the resolved watch URL the scraper
+ * captured (item.youtube_url) when available — clicking takes you straight
+ * to the song's video. Falls back to a search-results URL when we haven't
+ * resolved it yet (item not in homepage priority list, or YouTube returned
+ * nothing during scrape).
  */
 function youtubeSearchUrl(item) {
   if (!item) return "";
+  // Resolved URL from the scraper — exact video, what the user wants.
+  if (typeof item.youtube_url === "string" && item.youtube_url.startsWith("https://")) {
+    return item.youtube_url;
+  }
+  // Fallback: search results URL.
   const parts = [item.artist, item.title]
     .map(s => (s || "").trim())
     .filter(Boolean);
@@ -399,14 +405,19 @@ function fillSheet(item) {
   const ytBtn   = $("#sheetYtBtn");
   const tracksHost = $("#sheetTracks");
 
-  // YouTube button — always populated. For singles links to the song; for
-  // albums links to a "{artist} {title} full album" search.
+  // YouTube button — always populated. Both singles and albums use the
+  // resolved watch URL when the scraper has captured one (item.youtube_url),
+  // and fall back to a search URL otherwise. The fallback adds "full album"
+  // for album searches so YouTube's first result is more likely to be the
+  // full album rather than a single track.
   const ytUrl = isAlbum
-    ? (() => {
-        const parts = [item.artist, item.title].map(s => (s || "").trim()).filter(Boolean);
-        const q = encodeURIComponent([...parts, "full album"].join(" "));
-        return parts.length ? `https://www.youtube.com/results?search_query=${q}` : "";
-      })()
+    ? (item.youtube_url && item.youtube_url.startsWith("https://")
+        ? item.youtube_url
+        : (() => {
+            const parts = [item.artist, item.title].map(s => (s || "").trim()).filter(Boolean);
+            const q = encodeURIComponent([...parts, "full album"].join(" "));
+            return parts.length ? `https://www.youtube.com/results?search_query=${q}` : "";
+          })())
     : youtubeSearchUrl(item);
 
   if (ytUrl) {
@@ -613,6 +624,12 @@ function playItem(item) {
 
   // Tell the OS (car infotainment, lock screen, BT widgets) what's playing.
   updateMediaSession(item);
+  // Push position state with a few staggered delays. Android's BT/AVRCP
+  // bridge sometimes drops the first one if it fires before the BT
+  // connection has caught up to the track change. The loadedmetadata
+  // event handler will push again once duration is known.
+  setTimeout(updateMediaSessionPosition, 300);
+  setTimeout(updateMediaSessionPosition, 1500);
 }
 
 // ---------------- MediaSession (for Bluetooth / car / lock screen) ---------
@@ -622,6 +639,32 @@ function playItem(item) {
 // transport buttons (prev/next/play/pause/seek) back here.
 
 const ORIGINAL_TITLE = document.title;
+
+/**
+ * Build a CORS-friendly artwork URL for MediaSession.
+ *
+ * Problem: djjohal's image host (lq.djjohal.com) doesn't send
+ * Access-Control-Allow-Origin headers. Chrome on Android silently rejects
+ * cross-origin MediaSession artwork without CORS, so the Tesla / Android
+ * Auto / lock-screen widget shows a music-note placeholder instead of the
+ * cover.
+ *
+ * Fix: route the image through images.weserv.nl, a free public image
+ * proxy with CORS enabled and a CDN cache. We also use ?w=512 to resize
+ * down, since BT widgets typically render at ~200-300px anyway and
+ * shipping a 500KB original cover over Bluetooth is wasteful.
+ *
+ * This is ONLY used for MediaSession artwork. The on-page <img> tags
+ * keep using the direct djjohal URL — they don't need CORS to render.
+ */
+function corsArtworkUrl(rawUrl, size) {
+  if (!rawUrl) return "";
+  // Strip protocol; weserv expects the bare host+path.
+  const stripped = rawUrl.replace(/^https?:\/\//, "");
+  const w = size || 512;
+  // we=512 resizes (max width), output=jpg ensures consistent format
+  return `https://images.weserv.nl/?url=${encodeURIComponent(stripped)}&w=${w}&output=jpg`;
+}
 
 function updateMediaSession(item) {
   if (!("mediaSession" in navigator)) return;
@@ -638,15 +681,15 @@ function updateMediaSession(item) {
   document.title = artist ? `${title} — ${artist}` : title;
 
   try {
-    const artworkUrl = safeUrl(item.cover) || "";
-    const artwork = artworkUrl ? [
-      // Several sizes hint to the OS; same URL is fine since djjohal
-      // doesn't serve responsive variants.
-      { src: artworkUrl, sizes: "96x96",   type: "image/jpeg" },
-      { src: artworkUrl, sizes: "192x192", type: "image/jpeg" },
-      { src: artworkUrl, sizes: "256x256", type: "image/jpeg" },
-      { src: artworkUrl, sizes: "384x384", type: "image/jpeg" },
-      { src: artworkUrl, sizes: "512x512", type: "image/jpeg" },
+    const cover = item.cover || "";
+    const artwork = cover ? [
+      // Multiple sizes via the CORS proxy. Tesla/Android Auto/iOS pick
+      // whichever matches their display best.
+      { src: corsArtworkUrl(cover, 96),  sizes: "96x96",   type: "image/jpeg" },
+      { src: corsArtworkUrl(cover, 192), sizes: "192x192", type: "image/jpeg" },
+      { src: corsArtworkUrl(cover, 256), sizes: "256x256", type: "image/jpeg" },
+      { src: corsArtworkUrl(cover, 384), sizes: "384x384", type: "image/jpeg" },
+      { src: corsArtworkUrl(cover, 512), sizes: "512x512", type: "image/jpeg" },
     ] : [];
 
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -671,12 +714,21 @@ function clearMediaSession() {
 }
 
 function updateMediaSessionPosition() {
-  if (!("mediaSession" in navigator) || !audio.duration || !isFinite(audio.duration)) return;
+  if (!("mediaSession" in navigator) || !("setPositionState" in navigator.mediaSession)) return;
+  const dur = audio.duration;
+  const cur = audio.currentTime;
+  // Skip if duration isn't known yet (Infinity, NaN, or 0). Without a
+  // valid duration, Tesla/Android Auto can't render a scrub bar at all.
+  if (!Number.isFinite(dur) || dur <= 0) return;
+  const position = Math.max(0, Math.min(Number.isFinite(cur) ? cur : 0, dur));
+  const rate = Number.isFinite(audio.playbackRate) && audio.playbackRate > 0
+    ? audio.playbackRate
+    : 1;
   try {
     navigator.mediaSession.setPositionState({
-      duration: audio.duration,
-      position: Math.min(audio.currentTime, audio.duration),
-      playbackRate: audio.playbackRate || 1,
+      duration: dur,
+      position,
+      playbackRate: rate,
     });
   } catch (e) {
     // Some browsers throw if duration is Infinity or position > duration.
