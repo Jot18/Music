@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-25T16:47:40+00:00",
+  "generated_at": "2026-05-25T16:59:17+00:00",
   "stats": {
-    "total_singles": 24016,
+    "total_singles": 30602,
     "total_albums": 7725,
-    "mode": "fast",
+    "mode": "deep",
     "crawl": {
       "new_singles": {
-        "next_page": 1251,
-        "pages_walked": 1200,
-        "is_complete": false,
-        "last_session_at": "2026-05-25T16:24:07+00:00"
+        "next_page": 1664,
+        "pages_walked": 1613,
+        "is_complete": true,
+        "last_session_at": "2026-05-25T16:59:17+00:00"
       },
       "new_albums": {
         "next_page": 485,
@@ -2926,7 +2926,7 @@
           "section_id": "new_singles"
         }
       ],
-      "total_available": 24016
+      "total_available": 30602
     },
     {
       "id": "new_albums",
