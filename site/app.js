@@ -2,6 +2,20 @@
    Saadi Awaaz · App logic v7
    ============================================================ */
 
+// ---------------- Service worker (PWA install + offline shell) -------------
+// Registered early so the SW can intercept fetches for the rest of the
+// session. The SW caches the app shell and the data/*.json files; audio
+// streams and covers bypass it (always go direct to network).
+if ("serviceWorker" in navigator) {
+  // Wait until window load so the SW registration doesn't compete with
+  // first-paint resources.
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch((err) => {
+      console.warn("SW registration failed:", err);
+    });
+  });
+}
+
 // ---------------- Auth (simple password gate) -------------------------------
 // To set the password: pick one, hash it with SHA-256, paste the hex digest
 // into ACCESS_HASH. Anyone with the deployed site source can read this hash
@@ -111,6 +125,12 @@ const STATE = {
   // it came from. Clicking the now-playing bar/title re-opens that album's
   // sheet (with this track highlighted) instead of the single's detail.
   albumContext: null,  // the album item (or null when playing a standalone single)
+  // Current "view" — one of "home" or "artist:<name>" or "artists" (the list).
+  // Drives what renderAll() shows. Updated by hashchange.
+  view: "home",
+  // Lazy index built from search.json the first time the Artists view opens.
+  // Map: normalized artist name -> { displayName, items: [search entries] }
+  artistIndex: null,
 };
 
 function $(sel, root = document) { return root.querySelector(sel); }
@@ -327,6 +347,11 @@ function buildCard(item, isChart, idx) {
 }
 
 function renderAll(data) {
+  // Stash the data so back-navigation from an artist view can re-render
+  // home without re-fetching.
+  _homeData = data;
+  STATE.view = "home";
+
   const app = $("#app");
   app.innerHTML = "";
 
@@ -384,7 +409,24 @@ function fillSheet(item) {
   $("#sheetCover").alt = `${item.title} cover`;
   $("#sheetKicker").textContent = isAlbum ? "Album / EP" : "Single Track";
   $("#sheetTitle").textContent = item.title || "Untitled";
-  $("#sheetArtist").textContent = item.artist || (isAlbum ? "Various Artists" : "—");
+  // Make the artist name a clickable link to the artist page.
+  const artistEl = $("#sheetArtist");
+  const artistName = (item.artist || "").trim();
+  artistEl.innerHTML = "";
+  if (artistName) {
+    const link = el("a", {
+      href: `#artist/${encodeURIComponent(artistName)}`,
+      class: "sheet__artist-link",
+      onclick: (e) => {
+        e.preventDefault();
+        closeSheet();
+        openArtist(artistName);
+      },
+    }, artistName);
+    artistEl.append(link);
+  } else {
+    artistEl.textContent = isAlbum ? "Various Artists" : "—";
+  }
 
   const facts = $("#sheetFacts");
   facts.innerHTML = "";
@@ -575,6 +617,120 @@ function closeSheet() {
   if (dlg.open) dlg.close();
 }
 
+// Swipe-to-dismiss on the detail sheet (mobile/touch only).
+//
+// The dialog itself is the mobile scroll container (see styles.css mobile
+// rules — overflow-y: auto is on .sheet, not .sheet__inner). So a downward
+// finger drag should normally scroll the content. Only when the dialog is
+// already at scrollTop=0 do we treat a downward drag as a dismiss gesture.
+// Rightward swipes (the close button is in the top-right corner) always
+// trigger dismissal — there's no horizontal scroll to conflict with.
+(function setupSheetSwipeDismiss() {
+  const sheet = $("#detailSheet");
+  if (!sheet) return;
+  const THRESHOLD = 10;
+  const DISMISS_DISTANCE = 110;
+  let startX = null, startY = null, startScrollTop = 0;
+  let dragging = false, direction = null, startedOnControl = false;
+
+  const isOnControl = (target) => {
+    if (!target || !target.closest) return false;
+    return !!target.closest(
+      "button, a, input, .track, .dl-row, .sheet__close, .tracklist, .sheet__downloads"
+    );
+  };
+
+  const reset = () => {
+    sheet.style.transform = "";
+    sheet.style.transition = "";
+    startX = null; startY = null;
+    dragging = false; direction = null;
+  };
+
+  const onStart = (e) => {
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX;
+    startY = t.clientY;
+    startScrollTop = sheet.scrollTop;
+    dragging = false;
+    direction = null;
+    startedOnControl = isOnControl(e.target);
+  };
+
+  const onMove = (e) => {
+    if (startX == null) return;
+    if (startedOnControl) return;  // don't hijack taps on tracks/downloads
+
+    const t = e.touches ? e.touches[0] : e;
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (!dragging) {
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      if (absX < THRESHOLD && absY < THRESHOLD) return;
+      // Down only counts when we started at the top of the sheet.
+      // Otherwise the user is just scrolling.
+      if (absY >= absX && dy > 0 && startScrollTop <= 0) {
+        direction = "down";
+      } else if (absX > absY && dx > 0) {
+        // Right swipe always allowed.
+        direction = "right";
+      } else {
+        startX = null; startY = null;
+        return;
+      }
+      dragging = true;
+      sheet.style.transition = "";
+    }
+
+    if (direction === "down" && dy > 0) {
+      sheet.style.transform = `translateY(${dy}px)`;
+    } else if (direction === "right" && dx > 0) {
+      sheet.style.transform = `translateX(${dx}px)`;
+    }
+  };
+
+  const onEnd = (e) => {
+    if (startX == null) return;
+    if (!dragging) { reset(); return; }
+    const t = e.changedTouches ? e.changedTouches[0] : e;
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    sheet.style.transition = "transform .2s cubic-bezier(.2,.7,.2,1)";
+
+    const shouldClose =
+      (direction === "down"  && dy >  DISMISS_DISTANCE) ||
+      (direction === "right" && dx >  DISMISS_DISTANCE);
+
+    if (shouldClose) {
+      sheet.style.transform = direction === "down"
+        ? "translateY(100%)"
+        : "translateX(100%)";
+      setTimeout(() => {
+        sheet.style.transform = "";
+        sheet.style.transition = "";
+        closeSheet();
+      }, 200);
+      startX = null; startY = null;
+      dragging = false; direction = null;
+    } else {
+      sheet.style.transform = "";
+      setTimeout(() => {
+        sheet.style.transition = "";
+        startX = null; startY = null;
+        dragging = false; direction = null;
+      }, 220);
+    }
+  };
+
+  sheet.addEventListener("touchstart", onStart, { passive: true });
+  sheet.addEventListener("touchmove",  onMove,  { passive: true });
+  sheet.addEventListener("touchend",   onEnd,   { passive: true });
+  sheet.addEventListener("touchcancel", onEnd,  { passive: true });
+})();
+
 // ---------------- Player ---------------------------------------------------
 
 const audio = $("#audio");
@@ -596,10 +752,12 @@ function playItem(item) {
   $("#playerCover").src = cover;
   $("#playerTitle").textContent = item.title || "Untitled";
   $("#playerArtist").textContent = item.artist || "";
+  $("#playerArtist").dataset.artist = item.artist || "";
 
   $("#npCover").src = cover;
   $("#npTitle").textContent = item.title || "Untitled";
   $("#npArtist").textContent = item.artist || "";
+  $("#npArtist").dataset.artist = item.artist || "";
 
   // If now-playing overlay is open, refresh its YouTube link too.
   const npYt = $("#npYtBtn");
@@ -906,7 +1064,17 @@ $("#playerTitle").addEventListener("click", (e) => {
 });
 $("#playerArtist").addEventListener("click", (e) => {
   e.stopPropagation();
-  openCurrentContext();
+  const name = e.currentTarget.dataset.artist;
+  if (name) openArtist(name);
+  else openCurrentContext();
+});
+$("#npArtist").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const name = e.currentTarget.dataset.artist;
+  if (name) {
+    closeNowPlaying();
+    openArtist(name);
+  }
 });
 
 function seekFromEvent(e, scrubEl) {
@@ -1097,6 +1265,283 @@ function expandSlim(slim) {
   };
 }
 
+// ---------------- Artist pages ---------------------------------------------
+//
+// Tap an artist's name anywhere (album sheet, now-playing overlay, mini-player)
+// to open that artist's page: all their singles + albums, newest first.
+//
+// Data: built lazily from search.json the first time the Artists view is
+// requested. We group the 5,595 items by lowercase artist name to be
+// resilient to djjohal's casing inconsistencies, but display the most
+// common-case form so e.g. "Diljit Dosanjh" doesn't become "DILJIT DOSANJH"
+// just because one row had it caps-lock'd.
+
+function normalizeArtistKey(name) {
+  return (name || "").trim().toLowerCase();
+}
+
+async function ensureArtistIndex() {
+  if (STATE.artistIndex) return STATE.artistIndex;
+  const items = await ensureSearchIndex();
+  if (!items) return null;
+
+  /** @type {Map<string, { displayName: string, items: any[] }>} */
+  const idx = new Map();
+  for (const s of items) {
+    const raw = (s.a || "").trim();
+    if (!raw) continue;
+    const key = raw.toLowerCase();
+    let entry = idx.get(key);
+    if (!entry) {
+      entry = { displayName: raw, items: [] };
+      idx.set(key, entry);
+    } else {
+      // Prefer the casing that appears most "naturally" — pick the one
+      // with mixed case over all-caps or all-lowercase.
+      const cur = entry.displayName;
+      const looksTitleCase = (s) => s === s.replace(/\b\w/g, c => c.toUpperCase());
+      if (looksTitleCase(raw) && !looksTitleCase(cur)) entry.displayName = raw;
+    }
+    entry.items.push(s);
+  }
+  STATE.artistIndex = idx;
+  return idx;
+}
+
+/** Numeric desc by id — newer djjohal items have higher numeric IDs. */
+function sortNewestFirst(arr) {
+  return arr.slice().sort((a, b) => {
+    const ai = parseInt(a.i || a.id || "0", 10);
+    const bi = parseInt(b.i || b.id || "0", 10);
+    return bi - ai;
+  });
+}
+
+async function openArtist(name) {
+  const trimmed = (name || "").trim();
+  if (!trimmed) return;
+  // Update the URL so back/forward, copy/paste, and bookmarks work.
+  const hash = `#artist/${encodeURIComponent(trimmed)}`;
+  if (location.hash !== hash) {
+    history.pushState(null, "", hash);
+  }
+  await renderArtistView(trimmed);
+}
+
+async function renderArtistView(name) {
+  STATE.view = `artist:${name}`;
+  const app = $("#app");
+  // Build the page skeleton immediately so it feels responsive.
+  app.innerHTML = "";
+  const back = el("button", {
+    class: "artist__back",
+    type: "button",
+    "aria-label": "Back",
+    onclick: () => {
+      // Send the user to the homepage instead of bouncing through
+      // hash history (which can land us back in this same view).
+      goHome();
+    },
+  },
+    el("span", { html: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>` }),
+    "Back",
+  );
+  const header = el("section", { class: "artist__header" },
+    back,
+    el("p", { class: "artist__kicker" }, "Artist"),
+    el("h1", { class: "artist__name" }, name),
+    el("p", { class: "artist__count", id: "artistCount" }, "Loading…"),
+  );
+  app.append(header);
+
+  const singlesHost = el("section", { class: "section", id: "artist_singles", hidden: "" });
+  const albumsHost  = el("section", { class: "section", id: "artist_albums",  hidden: "" });
+  app.append(singlesHost, albumsHost);
+
+  // Scroll to top in case we were deep in another section.
+  window.scrollTo({ top: 0, behavior: "auto" });
+
+  const idx = await ensureArtistIndex();
+  if (!idx) {
+    $("#artistCount").textContent = "Couldn't load library";
+    return;
+  }
+  const entry = idx.get(normalizeArtistKey(name));
+  if (!entry) {
+    $("#artistCount").textContent = "No songs found for this artist";
+    return;
+  }
+
+  // Use the canonical display name we picked when building the index.
+  $(".artist__name", header).textContent = entry.displayName;
+
+  const all = sortNewestFirst(entry.items);
+  const singles = all.filter(s => s.k === "s").map(expandSlim);
+  const albums  = all.filter(s => s.k === "a").map(expandSlim);
+
+  $("#artistCount").textContent =
+    `${singles.length} song${singles.length === 1 ? "" : "s"}, ` +
+    `${albums.length} album${albums.length === 1 ? "" : "s"} · newest first`;
+
+  // Hydrate from the homepage / per-item caches if available, so cards
+  // show real covers without an extra fetch.
+  const hydrate = (it) => ITEM_CACHE.get(`${it.kind}:${it.id}`) || it;
+
+  if (singles.length) {
+    singlesHost.hidden = false;
+    singlesHost.append(
+      el("div", { class: "section__head" },
+        el("h2", { class: "section__title", html: `Songs by <em>${entry.displayName}</em>` }),
+        el("span", { class: "section__count" }, `${singles.length} track${singles.length === 1 ? "" : "s"}`),
+      ),
+    );
+    const grid = el("div", { class: "grid" });
+    singles.forEach((s, i) => grid.append(buildCard(hydrate(s), false, i)));
+    singlesHost.append(grid);
+  }
+  if (albums.length) {
+    albumsHost.hidden = false;
+    albumsHost.append(
+      el("div", { class: "section__head" },
+        el("h2", { class: "section__title", html: `Albums &amp; EPs by <em>${entry.displayName}</em>` }),
+        el("span", { class: "section__count" }, `${albums.length} release${albums.length === 1 ? "" : "s"}`),
+      ),
+    );
+    const grid = el("div", { class: "grid" });
+    albums.forEach((a, i) => grid.append(buildCard(hydrate(a), false, i)));
+    albumsHost.append(grid);
+  }
+
+  // Hydrate covers asynchronously for items not in the homepage cache.
+  // (Only the first ~20 visible to keep this cheap.)
+  const visible = [...singles.slice(0, 12), ...albums.slice(0, 8)];
+  for (const it of visible) {
+    const k = `${it.kind}:${it.id}`;
+    if (ITEM_CACHE.has(k)) continue;
+    loadItemDetail(it.kind, it.id).then((full) => {
+      if (!full || !full.cover) return;
+      // Update any card image still on screen.
+      const sel = `[data-item="${k}"] img`;
+      for (const img of $$(sel)) img.src = safeUrl(full.cover);
+    }).catch(() => {});
+  }
+}
+
+async function renderArtistsList() {
+  STATE.view = "artists";
+  const app = $("#app");
+  app.innerHTML = "";
+
+  const header = el("section", { class: "artist__header" },
+    el("p", { class: "artist__kicker" }, "Browse"),
+    el("h1", { class: "artist__name" }, "All artists"),
+    el("p", { class: "artist__count", id: "artistsListCount" }, "Loading…"),
+  );
+
+  // Letter-filter chips + search.
+  const filterBar = el("div", { class: "artists-filter" });
+  const filterInput = el("input", {
+    type: "search",
+    class: "artists-filter__input",
+    placeholder: "Filter artists…",
+    autocomplete: "off",
+    autocapitalize: "off",
+    autocorrect: "off",
+    spellcheck: "false",
+  });
+  filterBar.append(filterInput);
+
+  const listHost = el("div", { class: "artists-list" });
+  app.append(header, filterBar, listHost);
+  window.scrollTo({ top: 0, behavior: "auto" });
+
+  const idx = await ensureArtistIndex();
+  if (!idx) {
+    $("#artistsListCount").textContent = "Couldn't load library";
+    return;
+  }
+
+  // Sort by track count desc so prolific artists float to the top.
+  const all = [...idx.entries()]
+    .map(([key, v]) => ({ key, name: v.displayName, count: v.items.length }))
+    .sort((a, b) => {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.name.localeCompare(b.name);
+    });
+
+  $("#artistsListCount").textContent =
+    `${all.length.toLocaleString()} artists across ${idx.size === 1 ? "1 artist" : "the library"}`;
+
+  const renderList = (filter) => {
+    const q = (filter || "").trim().toLowerCase();
+    listHost.innerHTML = "";
+    let shown = 0;
+    for (const a of all) {
+      if (q && !a.key.includes(q)) continue;
+      const row = el("a", {
+        href: `#artist/${encodeURIComponent(a.name)}`,
+        class: "artist-row",
+        onclick: (e) => {
+          e.preventDefault();
+          openArtist(a.name);
+        },
+      },
+        el("span", { class: "artist-row__name" }, a.name),
+        el("span", { class: "artist-row__count" }, `${a.count} track${a.count === 1 ? "" : "s"}`),
+      );
+      listHost.append(row);
+      shown++;
+      // Cap to 500 displayed at once so the DOM stays light. The filter
+      // will reveal more from the long tail as the user types.
+      if (shown >= 500) break;
+    }
+    if (shown === 0) {
+      listHost.append(el("p", { class: "empty" }, q ? "No matching artists" : "No artists in the library"));
+    }
+  };
+  renderList("");
+  filterInput.addEventListener("input", () => renderList(filterInput.value));
+}
+
+function goHome() {
+  STATE.view = "home";
+  if (location.hash && location.hash !== "#new_singles") {
+    history.pushState(null, "", "#new_singles");
+  }
+  // Re-render the homepage from cached data so the back-from-artist
+  // returns are instant.
+  rerenderHome();
+}
+
+let _homeData = null;
+function rerenderHome() {
+  if (_homeData) renderAll(_homeData);
+  else boot();  // first time only
+}
+
+// Hash routing: handle #artist/Name and #artists.
+window.addEventListener("hashchange", () => routeFromHash());
+function routeFromHash() {
+  const h = (location.hash || "").slice(1);  // drop the '#'
+  if (h.startsWith("artist/")) {
+    const name = decodeURIComponent(h.slice("artist/".length));
+    if (name) {
+      renderArtistView(name);
+      return;
+    }
+  }
+  if (h === "artists") {
+    renderArtistsList();
+    return;
+  }
+  // Any other hash (#new_singles etc.) means we're on the home view.
+  // Don't re-render if we're already there — let the scrollspy do its job.
+  if (STATE.view !== "home") {
+    STATE.view = "home";
+    rerenderHome();
+  }
+}
+
 const searchInput = $("#searchInput");
 const searchClear = $("#searchClear");
 const resultsHost = () => $("#searchResults");
@@ -1211,11 +1656,26 @@ function setupScrollSpy() {
   for (const a of links) {
     a.addEventListener("click", (e) => {
       const id = a.getAttribute("href")?.slice(1);
-      const sect = id && document.getElementById(id);
+      // #artists and #artist/... aren't sections to scroll to — they're
+      // view routes. Let the link's default behavior fire hashchange
+      // and routeFromHash() take over.
+      if (!id || id === "artists" || id.startsWith("artist/")) return;
+      const sect = document.getElementById(id);
       if (sect) {
         e.preventDefault();
-        sect.scrollIntoView({ behavior: "smooth", block: "start" });
-        setActive(id);  // immediate feedback
+        // If we're in a non-home view, switch home first then scroll.
+        if (STATE.view !== "home") {
+          goHome();
+          // Defer scrollIntoView until the home DOM is back.
+          setTimeout(() => {
+            const s = document.getElementById(id);
+            if (s) s.scrollIntoView({ behavior: "smooth", block: "start" });
+            setActive(id);
+          }, 0);
+        } else {
+          sect.scrollIntoView({ behavior: "smooth", block: "start" });
+          setActive(id);  // immediate feedback
+        }
       }
     });
   }
@@ -1259,6 +1719,9 @@ async function boot() {
     const data = await res.json();
     renderAll(data);
     setupScrollSpy();
+    // If the page was opened with #artist/... or #artists, route to it
+    // now that base data is loaded.
+    if (location.hash.startsWith("#artist")) routeFromHash();
   } catch (err) {
     console.error(err);
     $("#app").innerHTML = `

@@ -10,10 +10,12 @@
 <title>Saadi Awaaz · Punjabi Music</title>
 <meta name="description" content="A private Punjabi music library." />
 <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230a0a0b'/><path d='M32 14 L46 50 L18 50 Z' fill='%23ffb547'/></svg>" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=7.13" />
+<link rel="stylesheet" href="styles.css?v=7.14" />
 </head>
 <body>
 
@@ -67,6 +69,11 @@
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 4v3H3v3a4 4 0 0 0 4 4 5 5 0 0 0 4 2.9V20H7v2h10v-2h-4v-3.1a5 5 0 0 0 4-2.9 4 4 0 0 0 4-4V7h-4V4z"/></svg>
         <span class="navlink__full">Top 50 Album Songs</span>
         <span class="navlink__short">Top Album</span>
+      </a>
+      <a href="#artists" class="navlink">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>
+        <span class="navlink__full">Artists</span>
+        <span class="navlink__short">Artists</span>
       </a>
     </nav>
 
@@ -136,6 +143,10 @@
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M7 4v3H3v3a4 4 0 0 0 4 4 5 5 0 0 0 4 2.9V20H7v2h10v-2h-4v-3.1a5 5 0 0 0 4-2.9 4 4 0 0 0 4-4V7h-4V4z"/></svg>
       <span>Top Album</span>
     </a>
+    <a href="#artists" class="tab">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"/></svg>
+      <span>Artists</span>
+    </a>
   </nav>
 </div>
 
@@ -189,7 +200,7 @@
       <div class="player__artist" id="playerArtist">—</div>
     </div>
   </button>
-  <audio id="audio" preload="none"></audio>
+  <audio id="audio" preload="none" playsinline x-webkit-airplay="allow"></audio>
   <div class="player__controls">
     <button class="iconbtn" id="btnPrev" aria-label="Previous">
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
@@ -250,6 +261,6 @@
   </a>
 </div>
 
-<script src="app.js?v=7.13"></script>
+<script src="app.js?v=7.14"></script>
 </body>
 </html>
