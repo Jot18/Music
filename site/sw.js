@@ -16,7 +16,7 @@
  *     the SW and go straight to network.
  */
 
-const CACHE_VERSION = "saadi-v7.14";
+const CACHE_VERSION = "saadi-v7.15";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE  = `${CACHE_VERSION}-data`;
 
@@ -24,8 +24,8 @@ const DATA_CACHE  = `${CACHE_VERSION}-data`;
 const SHELL_ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=7.14",
-  "./app.js?v=7.14",
+  "./styles.css?v=7.15",
+  "./app.js?v=7.15",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",

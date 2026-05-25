@@ -1279,8 +1279,8 @@ button { font: inherit; }
   .sheet {
     width: 100%;
     max-width: 100%;
-    height: 92vh;
-    max-height: 92vh;
+    /* height + max-height are set by the v7.15 rules at the end of this
+       file — they vary based on whether the player is visible. */
     margin: auto 0 0;
     border-radius: 20px 20px 0 0;
     overflow-y: auto;
@@ -1288,8 +1288,8 @@ button { font: inherit; }
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
   }
-  .sheet[open] { animation: sheetUp .3s cubic-bezier(.2,.7,.2,1); }
-  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  /* The animation keyframes for the mobile sheet are defined at the
+     end of this file (v7.15 block). */
   /* Inner becomes a normal in-flow block — the dialog scrolls, not this. */
   .sheet__inner {
     border-radius: 20px 20px 0 0;
@@ -1524,3 +1524,81 @@ button { font: inherit; }
   }
   .tab svg { width: 20px; height: 20px; }
 }
+
+/* ---------------- v7.15: non-modal sheet + persistent player --------- */
+
+/* Manual backdrop (replaces native ::backdrop, which doesn't render for
+   dialog.show()). Sits BELOW the player so the player remains visible
+   while the sheet is open. */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 48;  /* below .player (50) and .np (100) */
+  animation: backdropIn .2s ease-out;
+}
+@keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* The dialog is non-modal now; explicit positioning + z-index decides
+   stacking. Anchor it below the mini-player so the player stays visible. */
+.sheet {
+  position: fixed;
+  z-index: 49;  /* above backdrop (48), below mini-player (50) */
+  margin: 0;
+  /* Center on desktop (overridden in mobile media query below). */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.sheet[open] { animation: sheetIn .25s cubic-bezier(.2,.7,.2,1); }
+@keyframes sheetIn {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(.98); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Mobile: sheet rises from the bottom but leaves room for player + tabbar. */
+@media (max-width: 720px) {
+  .sheet {
+    /* Override the desktop centering above. */
+    top: auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    /* Default height when no player is showing: nearly full screen. */
+    height: calc(100vh - var(--tabbar-h) - 16px);
+    max-height: calc(100vh - var(--tabbar-h) - 16px);
+  }
+  /* When the player is showing, shrink the sheet further so the player
+     and tabbar both remain visible at the bottom. */
+  body.has-player .sheet {
+    height: calc(100vh - var(--tabbar-h) - 72px - 8px);
+    max-height: calc(100vh - var(--tabbar-h) - 72px - 8px);
+  }
+  .sheet[open] { animation: sheetUp .3s cubic-bezier(.2,.7,.2,1); }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+}
+
+/* Desktop: shrink the centered dialog a bit when the player is up so it
+   doesn't visually overlap the mini-player at the bottom. */
+@media (min-width: 721px) {
+  body.has-player .sheet {
+    max-height: 80vh;
+    top: calc(50% - 40px);  /* lift slightly so the player has clear space below */
+  }
+}
+
+/* Highlight the currently-playing track inside the open album sheet's
+   tracklist. JS sets .is-playing on the matching .track. */
+.track.is-playing {
+  background: rgba(255, 181, 71, 0.12);
+  border-color: var(--accent);
+}
+.track.is-playing .track__num,
+.track.is-playing .track__title {
+  color: var(--accent);
+}
+
+/* Hide the now-playing fullscreen overlay's tap-zone behind the sheet
+   visually — we don't actually need to do anything code-wise since z-index
+   already gives the np overlay priority (100 > 49). */

@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=7.14" />
+<link rel="stylesheet" href="styles.css?v=7.15" />
 </head>
 <body>
 
@@ -151,6 +151,10 @@
 </div>
 
 <!-- DETAIL SHEET -->
+<!-- Backdrop is its own element (not the native ::backdrop pseudo) so the
+     sheet can be opened non-modally — that lets the mini-player render
+     ABOVE the sheet via z-index instead of being hidden by the top-layer. -->
+<div id="sheetBackdrop" class="sheet-backdrop" hidden></div>
 <dialog id="detailSheet" class="sheet" aria-labelledby="sheetTitle">
   <div class="sheet__inner">
     <button class="sheet__close" aria-label="Close" data-close>
@@ -261,6 +265,6 @@
   </a>
 </div>
 
-<script src="app.js?v=7.14"></script>
+<script src="app.js?v=7.15"></script>
 </body>
 </html>

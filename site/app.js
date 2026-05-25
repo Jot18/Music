@@ -391,7 +391,14 @@ function renderAll(data) {
 
 async function openSheet(item) {
   fillSheet(item);
-  $("#detailSheet").showModal();
+  const dlg = $("#detailSheet");
+  // Use show() not showModal() — non-modal keeps the dialog out of the
+  // browser's "top layer" so the mini-player and now-playing overlay
+  // can sit above it via z-index when audio is playing.
+  if (!dlg.open) dlg.show();
+  const bd = $("#sheetBackdrop");
+  if (bd) bd.hidden = false;
+  document.body.classList.add("has-sheet");
 
   // For albums, ALWAYS hydrate from item file (we need the track list).
   // For singles, hydrate only if mp3 URLs are missing.
@@ -430,17 +437,61 @@ function fillSheet(item) {
 
   const facts = $("#sheetFacts");
   facts.innerHTML = "";
-  const rows = [
-    ["Music",     item.music],
-    ["Lyrics",    item.lyrics],
-    ["Label",     item.label],
-    ["Released",  item.released],
-    ["Playtime",  item.playtime],
-    ["Plays",     item.plays],
-  ];
+  // Compute a sensible playtime for the album: if the album itself has
+  // one, use it. Otherwise, look at each child track — djjohal's per-
+  // track detail page typically shows the ALBUM's total playtime, so
+  // any track that's been detail-fetched will reveal it. We start with
+  // whatever we have and let the async hydration below upgrade the cell
+  // once child details arrive.
+  let displayPlaytime = item.playtime || "";
+  if (isAlbum && !displayPlaytime && Array.isArray(item.album_tracks)) {
+    for (const t of item.album_tracks) {
+      const cached = ITEM_CACHE.get(`single:${t.id}`);
+      if (cached && cached.playtime) {
+        displayPlaytime = cached.playtime;
+        break;
+      }
+    }
+  }
+
+  // Albums don't have a per-track play count — that field is meaningful
+  // only for singles, so hide it on the album sheet.
+  const rows = isAlbum
+    ? [
+        ["Music",    item.music],
+        ["Lyrics",   item.lyrics],
+        ["Label",    item.label],
+        ["Released", item.released],
+        ["Playtime", displayPlaytime],
+      ]
+    : [
+        ["Music",    item.music],
+        ["Lyrics",   item.lyrics],
+        ["Label",    item.label],
+        ["Released", item.released],
+        ["Playtime", item.playtime],
+        ["Plays",    item.plays],
+      ];
   for (const [k, v] of rows) {
+    const dd = el("dd", { "data-fact": k.toLowerCase() }, safeText(v));
     facts.append(el("dt", {}, k));
-    facts.append(el("dd", {}, safeText(v)));
+    facts.append(dd);
+  }
+
+  // For albums missing a playtime, fire off a single fetch for the first
+  // child track to discover the value, then update the DOM in place.
+  if (isAlbum && !displayPlaytime && Array.isArray(item.album_tracks) && item.album_tracks.length) {
+    (async () => {
+      for (const t of item.album_tracks.slice(0, 3)) {
+        const full = await loadItemDetail("single", t.id);
+        if (full && full.playtime) {
+          // The sheet may have been closed or refilled by now — check.
+          const cell = $('#sheetFacts dd[data-fact="playtime"]');
+          if (cell) cell.textContent = full.playtime;
+          break;
+        }
+      }
+    })();
   }
 
   const playBtn = $("#sheetPlayBtn");
@@ -615,6 +666,9 @@ function renderAlbumTracks(album, host) {
 function closeSheet() {
   const dlg = $("#detailSheet");
   if (dlg.open) dlg.close();
+  const bd = $("#sheetBackdrop");
+  if (bd) bd.hidden = true;
+  document.body.classList.remove("has-sheet");
 }
 
 // Swipe-to-dismiss on the detail sheet (mobile/touch only).
@@ -744,6 +798,19 @@ function playItem(item) {
 
   STATE.currentIndex = STATE.playlist.findIndex(p => p.id === item.id && p.kind === item.kind);
   STATE.currentItem = item;
+
+  // If an album sheet is open AND the playing track belongs to that album,
+  // move the .is-playing highlight onto the right row. Lets the user
+  // visually track auto-advance through prev/next without re-opening the
+  // sheet.
+  if ($("#detailSheet").open) {
+    const tracksHost = $("#sheetTracks");
+    if (tracksHost) {
+      $$(".track.is-playing", tracksHost).forEach(e => e.classList.remove("is-playing"));
+      const match = tracksHost.querySelector(`.track[data-track-id="${item.id}"]`);
+      if (match) match.classList.add("is-playing");
+    }
+  }
 
   $("#player").hidden = false;
   document.body.classList.add("has-player");
@@ -1285,12 +1352,21 @@ async function ensureArtistIndex() {
   const items = await ensureSearchIndex();
   if (!items) return null;
 
+  // Placeholders djjohal uses when no real artist is credited — these
+  // aren't real artists, so excluding them from the browser keeps the
+  // list useful. Includes common spellings/abbreviations.
+  const PLACEHOLDER = new Set([
+    "various", "various artists", "v.a.", "v/a", "va",
+    "unknown", "unknown artist", "n/a",
+  ]);
+
   /** @type {Map<string, { displayName: string, items: any[] }>} */
   const idx = new Map();
   for (const s of items) {
     const raw = (s.a || "").trim();
     if (!raw) continue;
     const key = raw.toLowerCase();
+    if (PLACEHOLDER.has(key)) continue;
     let entry = idx.get(key);
     if (!entry) {
       entry = { displayName: raw, items: [] };
@@ -1631,11 +1707,17 @@ document.addEventListener("keydown", (e) => {
 });
 
 $$('[data-close]').forEach(b => b.addEventListener("click", closeSheet));
-$("#detailSheet").addEventListener("click", (e) => {
-  const rect = $("#detailSheet").getBoundingClientRect();
-  const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
-                 e.clientY >= rect.top && e.clientY <= rect.bottom;
-  if (!inside) closeSheet();
+// Backdrop click closes (mirrors the old showModal click-outside behavior,
+// which doesn't fire on non-modal dialogs).
+const _sheetBackdrop = $("#sheetBackdrop");
+if (_sheetBackdrop) _sheetBackdrop.addEventListener("click", closeSheet);
+// ESC closes (browsers handle this automatically for modal dialogs but
+// not for ones opened with show()).
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && $("#detailSheet").open) {
+    e.preventDefault();
+    closeSheet();
+  }
 });
 
 // ---------------- Section scrollspy ----------------------------------------
