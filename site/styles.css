@@ -844,11 +844,11 @@ button { font: inherit; }
 .player__controls {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
 }
 .iconbtn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: transparent;
   color: var(--text);
@@ -856,16 +856,18 @@ button { font: inherit; }
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: background .12s;
+  transition: background .12s, color .12s;
 }
-.iconbtn:hover { background: var(--surface-3); }
+.iconbtn:hover { background: var(--surface-3); color: var(--accent); }
+.iconbtn svg { width: 20px; height: 20px; }
 .iconbtn--play {
   background: var(--accent);
   color: #1a1100;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
 }
-.iconbtn--play:hover { background: var(--accent-hi); }
+.iconbtn--play:hover { background: var(--accent-hi); color: #1a1100; }
+.iconbtn--play svg { width: 22px; height: 22px; }
 
 .player__scrub {
   display: flex;
@@ -1227,15 +1229,26 @@ button { font: inherit; }
   .sheet {
     width: 100%;
     max-width: 100%;
-    max-height: 96vh;
+    max-height: 92vh;
     margin: auto 0 0;
     border-radius: 20px 20px 0 0;
   }
   .sheet[open] { animation: sheetUp .3s cubic-bezier(.2,.7,.2,1); }
   @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+  /* On mobile, the inner is ONE scrollable column (left stacked above right).
+     Without this, .sheet__left and .sheet__right each get their own scroll
+     bar, and the album tracks below the cover become unreachable. */
   .sheet__inner {
     border-radius: 20px 20px 0 0;
     border-left: 0; border-right: 0; border-bottom: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 92vh;
+  }
+  .sheet__left,
+  .sheet__right {
+    overflow-y: visible;   /* defer scrolling to .sheet__inner */
+    overflow-x: hidden;
   }
   .sheet__left {
     flex-direction: column;
@@ -1249,12 +1262,14 @@ button { font: inherit; }
     margin: 0 auto;
     max-width: 240px;
   }
-  .sheet__right { padding: 18px; }
+  .sheet__right { padding: 18px; padding-bottom: 32px; }
   .sheet__close {
     width: 38px;
     height: 38px;
     top: 14px;
     right: 14px;
+    /* Stays in place while the sheet content scrolls under it. */
+    position: fixed;
   }
 
   /* Player full-width */

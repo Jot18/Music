@@ -51,6 +51,15 @@ jobs:
       - name: Install deps
         run: pip install -r scraper/requirements.txt
 
+      - name: Smoke-test parsers
+        run: python scraper/smoke_test.py
+
+      - name: Backup library.db
+        run: |
+          if [ -f data/library.db ]; then
+            cp data/library.db data/library.db.bak
+          fi
+
       - name: Run scraper (deep)
         env:
           MODE:               deep

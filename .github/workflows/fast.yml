@@ -49,6 +49,21 @@ jobs:
       - name: Install deps
         run: pip install -r scraper/requirements.txt
 
+      - name: Smoke-test parsers
+        # Catches djjohal HTML changes BEFORE we overwrite the DB with
+        # bad parses. If this fails, the scrape step won't run.
+        run: python scraper/smoke_test.py
+
+      - name: Backup library.db
+        # Keep one rolling backup committed alongside the DB. If a future
+        # run somehow corrupts library.db (bad parse, partial write, etc.)
+        # we can recover by copying data/library.db.bak over it.
+        run: |
+          if [ -f data/library.db ]; then
+            cp data/library.db data/library.db.bak
+            echo "Backup made: $(stat -c%s data/library.db.bak) bytes"
+          fi
+
       - name: Run scraper (fast)
         env:
           MODE:               fast

@@ -259,18 +259,35 @@ function buildCard(item, isChart, idx) {
   const playBtn = el("button", {
     class: "card__play",
     "aria-label": isAlbum ? `Open ${item.title}` : `Play ${item.title}`,
-    onclick: async (e) => {
+    onclick: (e) => {
       e.stopPropagation();
       if (isAlbum) {
         // Open the album sheet so the user can pick a track.
         openSheet(item);
-      } else {
-        const full = await ensureFullItem(item);
-        if (full) {
-          STATE.albumContext = null;  // playing a standalone single
-          playItem(full);
-        }
+        return;
       }
+      // Critical: play SYNCHRONOUSLY if we already have a stream URL.
+      // On Android Chrome, audio.play() must run inside the same task as
+      // the user click; an `await` between click and play() breaks the
+      // user-gesture chain and the browser may navigate to the MP3 URL
+      // (which then downloads). Items in songs.json all have streams
+      // when has_detail=1, so the common case is sync.
+      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48)) {
+        STATE.albumContext = null;
+        playItem(item);
+        return;
+      }
+      // Slow path: need to fetch detail. Won't autoplay on Android, but
+      // works on desktop.
+      (async () => {
+        const full = await ensureFullItem(item);
+        if (full && full.mp3 && (full.mp3.stream || full.mp3.kbps128 || full.mp3.kbps320 || full.mp3.kbps48)) {
+          STATE.albumContext = null;
+          playItem(full);
+        } else {
+          alert("This track isn't streamable yet — the next scrape will pick it up.");
+        }
+      })();
     },
     html: isAlbum
       ? `<svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zM4 11h16v2H4zM4 16h16v2H4z" fill="currentColor"/></svg>`
@@ -406,13 +423,25 @@ function fillSheet(item) {
   } else {
     // Singles: show Play button, no track list.
     playBtn.style.display = "";
-    playBtn.onclick = async () => {
-      const full = await ensureFullItem(item);
-      if (full) {
-        STATE.albumContext = null;  // playing a standalone single
-        playItem(full);
+    playBtn.onclick = (e) => {
+      e.preventDefault();
+      // Synchronous fast path — see card playback for why this matters
+      // (Android user-gesture chain breaks across awaits, causing the
+      // browser to navigate to the MP3 URL and download instead of stream).
+      if (item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48)) {
+        STATE.albumContext = null;
+        playItem(item);
+        closeSheet();
+        return;
       }
-      closeSheet();
+      (async () => {
+        const full = await ensureFullItem(item);
+        if (full && full.mp3 && (full.mp3.stream || full.mp3.kbps128 || full.mp3.kbps320 || full.mp3.kbps48)) {
+          STATE.albumContext = null;
+          playItem(full);
+        }
+        closeSheet();
+      })();
     };
     const hasStream = item.mp3 && (item.mp3.stream || item.mp3.kbps128 || item.mp3.kbps320 || item.mp3.kbps48);
     playBtn.disabled = !hasStream;
@@ -461,47 +490,64 @@ function renderAlbumTracks(album, host) {
   // If the currently playing track is one of these, mark it.
   const playingTrackId = (STATE.currentItem && STATE.albumContext &&
                           STATE.albumContext.id === album.id) ? STATE.currentItem.id : null;
+
+  // Helper that actually plays a track once we have its full detail.
+  // Builds the album's playlist context too.
+  const playAlbumTrack = (full, btn) => {
+    STATE.playlist = [];
+    for (const tr of tracks) {
+      const cached = ITEM_CACHE.get(`single:${tr.id}`);
+      if (cached && cached.mp3 && (cached.mp3.stream || cached.mp3.kbps128 || cached.mp3.kbps320)) {
+        STATE.playlist.push(cached);
+      }
+    }
+    if (!STATE.playlist.find(p => p.id === full.id && p.kind === "single")) {
+      STATE.playlist.push(full);
+    }
+    STATE.albumContext = album;
+    playItem(full);
+    $$(".track.is-playing", host).forEach(e => e.classList.remove("is-playing"));
+    btn.classList.add("is-playing");
+  };
+
   tracks.forEach((t, idx) => {
     const btn = el("button", {
       class: "track" + (playingTrackId === t.id ? " is-playing" : ""),
       type: "button",
       "data-track-id": t.id,
-      onclick: async () => {
-        // Try to load the track's full detail and play it.
-        const full = await loadItemDetail("single", t.id);
-        if (full && full.mp3 && (full.mp3.stream || full.mp3.kbps128 || full.mp3.kbps320)) {
-          // Build playlist from this album's tracks (those that have details).
-          STATE.playlist = [];
-          for (const tr of tracks) {
-            const cached = ITEM_CACHE.get(`single:${tr.id}`);
-            if (cached && cached.mp3 && (cached.mp3.stream || cached.mp3.kbps128 || cached.mp3.kbps320)) {
-              STATE.playlist.push(cached);
-            }
-          }
-          if (!STATE.playlist.find(p => p.id === t.id && p.kind === "single")) {
-            STATE.playlist.push(full);
-          }
-          // Remember which album we're playing from. The player's title click
-          // and the mobile now-playing "view details" button use this to
-          // re-open the album sheet instead of the single's detail page.
-          STATE.albumContext = album;
-          playItem(full);
-          $$(".track.is-playing", host).forEach(e => e.classList.remove("is-playing"));
-          btn.classList.add("is-playing");
+      onclick: (e) => {
+        e.preventDefault();
+        // Synchronous fast path: if this track's detail is already cached
+        // with a streamable URL, play it right now. Same Android-autoplay
+        // concern as on the homepage cards — an `await` here would break
+        // the user-gesture chain and the OS would download instead.
+        const cached = ITEM_CACHE.get(`single:${t.id}`);
+        if (cached && cached.mp3 && (cached.mp3.stream || cached.mp3.kbps128 || cached.mp3.kbps320)) {
+          playAlbumTrack(cached, btn);
           return;
         }
-        // Track not yet harvested. Offer the album's zip as a fallback.
-        const zipUrl = album.mp3?.zip320 || album.mp3?.zip128;
-        if (zipUrl) {
-          if (confirm(
-            "This track isn't streamable yet — the scraper will pick it up on a later run.\n\n" +
-            "Download the whole album zip in the meantime?"
-          )) {
-            window.open(safeUrl(zipUrl), "_blank", "noopener");
+        // Slow path: fetch detail then play. On Android this may not auto-
+        // start; that's OK because the audio element still loads and the
+        // user can tap Play.
+        (async () => {
+          const full = await loadItemDetail("single", t.id);
+          if (full && full.mp3 && (full.mp3.stream || full.mp3.kbps128 || full.mp3.kbps320)) {
+            playAlbumTrack(full, btn);
+            return;
           }
-        } else {
-          alert("Track details not yet harvested. The next scrape will pick it up.");
-        }
+          // Track not yet harvested.
+          const zipUrl = album.mp3?.zip320 || album.mp3?.zip128;
+          if (zipUrl) {
+            if (confirm(
+              "This track isn't streamable yet — the scraper will pick it up on a later run.\n\n" +
+              "Download the whole album zip in the meantime?"
+            )) {
+              window.open(safeUrl(zipUrl), "_blank", "noopener");
+            }
+          } else {
+            alert("Track details not yet harvested. The next scrape will pick it up.");
+          }
+        })();
       },
     },
       el("span", { class: "track__num" }, String(idx + 1).padStart(2, "0")),
@@ -552,8 +598,18 @@ function playItem(item) {
     else npYt.style.display = "none";
   }
 
+  audio.preload = "auto";
   audio.src = safeUrl(stream);
-  audio.play().catch(err => console.warn("Playback failed:", err));
+  const playPromise = audio.play();
+  if (playPromise && typeof playPromise.catch === "function") {
+    playPromise.catch(err => {
+      // Common cause on Android: NotAllowedError if play() was deferred
+      // past the user-gesture window. Don't navigate to the URL (that
+      // would download); leave audio element loaded so user can tap
+      // the play button manually.
+      console.warn("Playback failed:", err && err.name, err && err.message);
+    });
+  }
 
   // Tell the OS (car infotainment, lock screen, BT widgets) what's playing.
   updateMediaSession(item);
@@ -683,20 +739,37 @@ function togglePlay() {
   else audio.pause();
 }
 
-async function playPrev() {
+function playPrev() {
   if (STATE.playlist.length === 0) return;
   let i = STATE.currentIndex - 1;
   if (i < 0) i = STATE.playlist.length - 1;
-  const full = await ensureFullItem(STATE.playlist[i]);
-  if (full) playItem(full);
+  const candidate = STATE.playlist[i];
+  // Sync fast path: playlists are built from items that already have
+  // streams, so this is the typical case.
+  if (candidate && candidate.mp3 && (candidate.mp3.stream || candidate.mp3.kbps128 || candidate.mp3.kbps320)) {
+    playItem(candidate);
+    return;
+  }
+  // Slow path
+  (async () => {
+    const full = await ensureFullItem(candidate);
+    if (full) playItem(full);
+  })();
 }
 
-async function playNext() {
+function playNext() {
   if (STATE.playlist.length === 0) return;
   let i = STATE.currentIndex + 1;
   if (i >= STATE.playlist.length) i = 0;
-  const full = await ensureFullItem(STATE.playlist[i]);
-  if (full) playItem(full);
+  const candidate = STATE.playlist[i];
+  if (candidate && candidate.mp3 && (candidate.mp3.stream || candidate.mp3.kbps128 || candidate.mp3.kbps320)) {
+    playItem(candidate);
+    return;
+  }
+  (async () => {
+    const full = await ensureFullItem(candidate);
+    if (full) playItem(full);
+  })();
 }
 
 function setPlayingUI(isPlaying) {
