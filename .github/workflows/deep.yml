@@ -11,9 +11,9 @@ on:
         required: false
         default: '200'
       max_details:
-        description: 'Max detail-page fetches this run (default 800)'
+        description: 'Max detail-page fetches this run (default 1500)'
         required: false
-        default: '800'
+        default: '1500'
       reset:
         description: 'Reset crawl state and start from page 1 again'
         required: false
@@ -55,7 +55,7 @@ jobs:
         env:
           MODE:               deep
           PAGES_PER_SESSION:  ${{ github.event.inputs.pages_per_session || '200' }}
-          MAX_DETAIL_FETCHES: ${{ github.event.inputs.max_details       || '800' }}
+          MAX_DETAIL_FETCHES: ${{ github.event.inputs.max_details       || '1500' }}
           RESET_DEEP:         ${{ github.event.inputs.reset             || 'no' }}
         run: python scraper/scrape.py
 

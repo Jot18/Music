@@ -417,28 +417,37 @@ function renderAlbumTracks(album, host) {
       type: "button",
       "data-track-id": t.id,
       onclick: async () => {
-        // Load the track's full detail and play it.
+        // Try to load the track's full detail and play it.
         const full = await loadItemDetail("single", t.id);
-        if (!full) {
-          alert("Track details not yet harvested. Try again after the next scrape.");
+        if (full && full.mp3 && (full.mp3.stream || full.mp3.kbps128 || full.mp3.kbps320)) {
+          // Build playlist from this album's tracks (those that have details).
+          STATE.playlist = [];
+          for (const tr of tracks) {
+            const cached = ITEM_CACHE.get(`single:${tr.id}`);
+            if (cached && cached.mp3 && (cached.mp3.stream || cached.mp3.kbps128 || cached.mp3.kbps320)) {
+              STATE.playlist.push(cached);
+            }
+          }
+          if (!STATE.playlist.find(p => p.id === t.id && p.kind === "single")) {
+            STATE.playlist.push(full);
+          }
+          playItem(full);
+          $$(".track.is-playing", host).forEach(e => e.classList.remove("is-playing"));
+          btn.classList.add("is-playing");
           return;
         }
-        // Update playlist to be this album's tracks so prev/next walk it.
-        STATE.playlist = [];
-        for (const tr of tracks) {
-          const cached = ITEM_CACHE.get(`single:${tr.id}`);
-          if (cached && cached.mp3 && (cached.mp3.stream || cached.mp3.kbps128 || cached.mp3.kbps320)) {
-            STATE.playlist.push(cached);
+        // Track not yet harvested. Offer the album's zip as a fallback.
+        const zipUrl = album.mp3?.zip320 || album.mp3?.zip128;
+        if (zipUrl) {
+          if (confirm(
+            "This track isn't streamable yet — the scraper will pick it up on a later run.\n\n" +
+            "Download the whole album zip in the meantime?"
+          )) {
+            window.open(safeUrl(zipUrl), "_blank", "noopener");
           }
+        } else {
+          alert("Track details not yet harvested. The next scrape will pick it up.");
         }
-        // If full track isn't yet in playlist, add it.
-        if (!STATE.playlist.find(p => p.id === t.id && p.kind === "single")) {
-          STATE.playlist.push(full);
-        }
-        playItem(full);
-        // Update "is-playing" indicator
-        $$(".track.is-playing", host).forEach(e => e.classList.remove("is-playing"));
-        btn.classList.add("is-playing");
       },
     },
       el("span", { class: "track__num" }, String(idx + 1).padStart(2, "0")),

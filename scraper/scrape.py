@@ -104,7 +104,7 @@ MODE = os.environ.get("MODE", "fast").lower()
 
 FAST_PAGES         = int(os.environ.get("FAST_PAGES", "50"))
 PAGES_PER_SESSION  = int(os.environ.get("PAGES_PER_SESSION", "200"))
-MAX_DETAIL_FETCHES = int(os.environ.get("MAX_DETAIL_FETCHES", "800"))
+MAX_DETAIL_FETCHES = int(os.environ.get("MAX_DETAIL_FETCHES", "1500"))
 RESET_DEEP         = os.environ.get("RESET_DEEP", "no").lower() == "yes"
 
 DETAIL_DELAY_SECONDS  = 0.25
@@ -159,7 +159,8 @@ CREATE TABLE IF NOT EXISTS items (
     last_seen_at    TEXT NOT NULL,
     detail_fetched_at TEXT,
     listing_text    TEXT,
-    discovery_rank  INTEGER,      -- higher = newer on djjohal page 1
+    discovery_rank  INTEGER,      -- legacy, kept for back-compat
+    priority_queue  INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (kind, id)
 );
 
@@ -212,7 +213,8 @@ def _ensure_columns(conn):
     existing = {r["name"] for r in conn.execute("PRAGMA table_info(items)")}
     additions = [
         ("album_tracks",   "TEXT"),
-        ("discovery_rank", "INTEGER"),   # global insertion order, monotonic
+        ("discovery_rank", "INTEGER"),   # legacy, kept for back-compat
+        ("priority_queue", "INTEGER NOT NULL DEFAULT 0"),
     ]
     for col, col_type in additions:
         if col not in existing:
@@ -668,37 +670,46 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
     """Fetch detail pages for items lacking them, up to `budget`.
 
     Priority:
-      1. Items in the live homepage feeds (top N by discovery_rank per kind).
-      2. Other items with high discovery_rank (next-newest from djjohal).
-      3. Everything else, newest first by discovery_rank.
+      1. Items in the live homepage feeds (top 100 by ID per kind).
+      2. Album child tracks queued during this run (so albums "just work"
+         after a single scrape run instead of needing multiple passes).
+      3. Everything else, newest first by item ID.
     """
-    # Build priority set: items the homepage will show + items in section_items.
     priority = set()
     for r in conn.execute("SELECT kind, item_id FROM section_items"):
         priority.add((r["kind"], r["item_id"]))
-    # Homepage shows top 100 of each kind by discovery_rank.
+    # Homepage shows top 100 of each kind by item ID.
     for kind in ("single", "album"):
         for r in conn.execute(
             "SELECT kind, id FROM items WHERE kind=? "
-            "ORDER BY discovery_rank DESC LIMIT 100",
+            "ORDER BY CAST(id AS INTEGER) DESC LIMIT 100",
             (kind,),
         ):
             priority.add((r["kind"], r["id"]))
+    # Plus anything explicitly queued as "high priority" (album child tracks).
+    for r in conn.execute(
+        "SELECT kind, id FROM items WHERE has_detail=0 AND priority_queue=1"
+    ):
+        priority.add((r["kind"], r["id"]))
 
-    # All pending rows, fetched newest-first by discovery_rank.
+    # All pending rows, fetched newest-first by ID.
     rows = conn.execute(
         "SELECT * FROM items WHERE has_detail=0 "
-        "ORDER BY discovery_rank DESC"
+        "ORDER BY CAST(id AS INTEGER) DESC"
     ).fetchall()
-    # Move priority rows to the front.
     rows = sorted(
         rows,
         key=lambda r: (0 if (r["kind"], r["id"]) in priority else 1,
-                       -(r["discovery_rank"] or 0))
+                       -int(r["id"]) if r["id"].isdigit() else 0)
     )
 
     print(f"\n[detail] {len(rows)} items pending detail. budget={budget}")
     fetched = 0
+    # Track child tracks queued by albums during this pass, so we can
+    # fetch them in a follow-up sub-pass before exhausting the budget on
+    # totally unrelated items.
+    newly_queued_children: list[tuple[str, str]] = []  # (kind, id)
+
     for row in rows:
         if fetched >= budget:
             print(f"  budget exhausted at {fetched}; remaining will pick up next run")
@@ -721,7 +732,7 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
                 "playtime=?, plays=?, cover=?, "
                 "stream_url=?, mp3_320=?, mp3_128=?, mp3_48=?, zip_320=?, zip_128=?, "
                 "album_tracks=?, "
-                "has_detail=1, detail_fetched_at=?, last_seen_at=? "
+                "has_detail=1, priority_queue=0, detail_fetched_at=?, last_seen_at=? "
                 "WHERE kind=? AND id=?",
                 (
                     title, artist, d["music"], d["lyrics"], d["label"], d["released"],
@@ -735,7 +746,8 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
             )
 
             # If this was an album, also queue its child tracks as singles so
-            # their detail pages get fetched next run (or now if budget allows).
+            # their detail pages get fetched. We mark them priority_queue=1 so
+            # they get picked up in the second sub-pass below.
             if row["kind"] == "album" and d["album_tracks"]:
                 for t in d["album_tracks"]:
                     track_url = f"{SOURCE}/get/{t['id']}/{t['slug']}.html"
@@ -744,6 +756,12 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
                         "detail_url": track_url,
                         "listing_text": f"{t['title']} - {artist}" if artist else t["title"],
                     }, "single", now_iso)
+                    conn.execute(
+                        "UPDATE items SET priority_queue=1 "
+                        "WHERE kind='single' AND id=? AND has_detail=0",
+                        (t["id"],),
+                    )
+                    newly_queued_children.append(("single", t["id"]))
 
             fetched += 1
             if fetched % 25 == 0:
@@ -754,6 +772,54 @@ def fetch_details_budgeted(conn, budget: int, now_iso: str) -> int:
             print(f"  ! detail failed {row['kind']}:{row['id']}: {e}", file=sys.stderr)
 
     conn.commit()
+
+    # Second sub-pass: fetch album child tracks queued during pass 1, so
+    # users can actually play album tracks right after a scrape run.
+    if newly_queued_children and fetched < budget:
+        # Pull fresh rows (some may have already been fetched if they happened
+        # to be in the priority pool).
+        ids = [iid for _, iid in newly_queued_children]
+        placeholders = ",".join("?" for _ in ids)
+        child_rows = conn.execute(
+            f"SELECT * FROM items WHERE kind='single' AND has_detail=0 AND id IN ({placeholders})",
+            ids,
+        ).fetchall()
+        if child_rows:
+            print(f"\n[detail/children] fetching {len(child_rows)} album-track details "
+                  f"(budget remaining: {budget - fetched})")
+            for row in child_rows:
+                if fetched >= budget:
+                    print(f"  budget exhausted at {fetched} during child pass")
+                    break
+                try:
+                    html = fetch(row["detail_url"])
+                    d = parse_detail(html, "single")
+                    lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", "single")
+                    title  = d["title"]  or row["title"]  or lt_title  or ""
+                    artist = d["artist"] or row["artist"] or lt_artist or ""
+                    if lt_title and lt_artist:
+                        title, artist = lt_title, lt_artist
+                    conn.execute(
+                        "UPDATE items SET "
+                        "title=?, artist=?, music=?, lyrics=?, label=?, released=?, "
+                        "playtime=?, plays=?, cover=?, "
+                        "stream_url=?, mp3_320=?, mp3_128=?, mp3_48=?, zip_320=?, zip_128=?, "
+                        "has_detail=1, priority_queue=0, detail_fetched_at=?, last_seen_at=? "
+                        "WHERE kind='single' AND id=?",
+                        (title, artist, d["music"], d["lyrics"], d["label"], d["released"],
+                         d["playtime"], d["plays"], d["cover"],
+                         d["stream_url"], d["mp3_320"], d["mp3_128"], d["mp3_48"],
+                         d["zip_320"], d["zip_128"],
+                         now_iso, now_iso, row["id"]),
+                    )
+                    fetched += 1
+                    if fetched % 25 == 0:
+                        conn.commit()
+                    time.sleep(DETAIL_DELAY_SECONDS)
+                except Exception as e:
+                    print(f"  ! child detail failed single:{row['id']}: {e}", file=sys.stderr)
+            conn.commit()
+
     print(f"[detail] done. fetched {fetched} pages this run.")
     return fetched
 
@@ -799,13 +865,12 @@ def export_homepage(conn, now_iso: str):
     sections_out = []
     for section in SECTIONS:
         if section["paginate"]:
-            # Newest-first by discovery_rank. This is the actual order djjohal
-            # listed items in (page 1 = newest), captured at scrape time and
-            # stable across runs — unlike first_seen_at which collapses when
-            # 26K rows get inserted in one deep-walk batch.
+            # Newest-first by djjohal's own item ID. Higher numeric ID = newer
+            # release on djjohal. This matches what their site shows on page 1
+            # and is stable across runs regardless of discovery order.
             rows = conn.execute(
                 "SELECT * FROM items WHERE kind=? "
-                "ORDER BY discovery_rank DESC LIMIT ?",
+                "ORDER BY CAST(id AS INTEGER) DESC LIMIT ?",
                 (section["kind"], section["feed_cap"]),
             ).fetchall()
         else:
