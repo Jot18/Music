@@ -897,20 +897,36 @@ button { font: inherit; }
   min-width: 0;
 }
 .scrub {
+  position: relative;
   flex: 1;
   height: 4px;
   background: var(--border);
   border-radius: 999px;
-  overflow: hidden;
   cursor: pointer;
   min-width: 60px;
 }
 .scrub__fill {
+  position: relative;
   height: 100%;
   width: 0%;
   background: var(--accent);
   border-radius: 999px;
   transition: width .1s linear;
+}
+/* Playhead dot at the leading edge of the fill. Sits half-outside on
+   the right so the dot tracks the actual playback position visually
+   (like Spotify / Android's media notification scrubber). */
+.scrub__fill::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 2px var(--bg);
 }
 
 .player__close {
@@ -1015,6 +1031,12 @@ button { font: inherit; }
   margin-bottom: 28px;
 }
 .np__scrub .scrub { height: 5px; }
+/* Slightly larger playhead dot on the fullscreen player — touch target. */
+.np__scrub .scrub__fill::after {
+  width: 14px;
+  height: 14px;
+  right: -7px;
+}
 .np__times {
   display: flex;
   justify-content: space-between;

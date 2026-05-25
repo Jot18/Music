@@ -250,7 +250,90 @@ def _ensure_columns(conn):
     # Always sync the counter to the current max, so new inserts continue
     # the sequence without gaps or collisions.
     _seed_max_rank_from_table(conn)
+
+    # ---- v7.12 healing: detect title/artist that are stored backwards.
+    #
+    # Context: djjohal's listing_text field is inconsistent (sometimes
+    # "Artist - Title", sometimes "Title - Artist"), so listing-based
+    # detection is unreliable. But the SLUG (URL component) is
+    # consistently "artist-title" lowercased with hyphens. We use the
+    # slug to determine which is which:
+    #   1. Normalize stored title and artist to slug form.
+    #   2. Check if slug STARTS with the title's normalized form. If yes,
+    #      then the slug's first half is the current title — which means
+    #      the slug-order is "title-artist", contradicting djjohal's
+    #      convention of "artist-title". The stored values are swapped:
+    #      heal them.
+    #   3. Otherwise the assignment is correct (slug starts with artist).
+    _heal_swapped_title_artist(conn)
+
     conn.commit()
+
+
+def _normalize_slug(s: str) -> str:
+    """Approximate djjohal's slug normalization."""
+    if not s:
+        return ""
+    s = s.lower().strip()
+    # Strip parentheticals like "(feat. ...)" since djjohal often drops them.
+    s = re.sub(r"\([^)]*\)", "", s)
+    s = re.sub(r"\[[^\]]*\]", "", s)
+    # Non-alphanumerics → hyphens, collapse runs, trim ends.
+    s = re.sub(r"[^a-z0-9]+", "-", s)
+    s = re.sub(r"-+", "-", s).strip("-")
+    return s
+
+
+def _heal_swapped_title_artist(conn):
+    """For singles, use slug + id to detect rows where title and artist
+    are stored backwards (the v7.11 parser bug), and swap them.
+
+    djjohal's slug convention varies by era:
+      - id ≥ 600000: slug = 'artist-title'
+      - id <  600000: slug = 'title-artist'
+    The expected orientation determines whether the current assignment
+    is correct or swapped.
+    """
+    rows = conn.execute(
+        "SELECT kind, id, title, artist, slug FROM items "
+        "WHERE kind='single' AND slug != '' "
+        "  AND title != '' AND artist != ''"
+    ).fetchall()
+    if not rows:
+        return
+
+    to_swap: list[tuple[str, str]] = []
+    for r in rows:
+        slug = (r["slug"] or "").lower()
+        t_norm = _normalize_slug(r["title"])
+        a_norm = _normalize_slug(r["artist"])
+        if not t_norm or not a_norm:
+            continue
+        if t_norm not in slug or a_norm not in slug:
+            continue
+        title_pos  = slug.find(t_norm)
+        artist_pos = slug.find(a_norm)
+
+        orient = _slug_orientation(r["id"])
+        if orient == "artist-title":
+            # Slug starts with artist. Current is correct iff artist_pos < title_pos.
+            correct = artist_pos < title_pos
+        else:
+            # Slug starts with title. Current is correct iff title_pos < artist_pos.
+            correct = title_pos < artist_pos
+
+        if not correct:
+            to_swap.append((r["kind"], r["id"]))
+
+    if not to_swap:
+        return
+
+    print(f"[migrate] healing {len(to_swap)} singles with swapped title/artist")
+    conn.executemany(
+        "UPDATE items SET title = artist, artist = title "
+        "WHERE kind=? AND id=?",
+        to_swap,
+    )
 
 
 def _migrate_legacy_songs_json(conn):
@@ -450,14 +533,59 @@ def _field_after(text: str, label: str) -> str:
     return m.group(1).splitlines()[0].strip() if m else ""
 
 
-def parse_listing_text(text: str, kind: str) -> tuple[str, str]:
+def _slug_orientation(item_id: str) -> str:
+    """Determine whether djjohal's slug for this item is 'artist-title' or
+    'title-artist'. Their convention changed around id=600000:
+      - newer items (id ≥ 600000): slug = 'artist-title'
+      - older items: slug = 'title-artist'
+    """
+    try:
+        n = int(item_id)
+    except (ValueError, TypeError):
+        return "title-artist"  # safer default for legacy
+    return "artist-title" if n >= 600000 else "title-artist"
+
+
+def parse_listing_text(text: str, kind: str, slug: str = "", item_id: str = "") -> tuple[str, str]:
+    """Split djjohal listing text into (title, artist).
+
+    listing_text and song-line formats are inconsistent across djjohal's
+    catalog. The slug is the reliable signal, BUT djjohal's slug
+    convention also changed:
+      - new items: 'artist-title'
+      - old items: 'title-artist'
+
+    When we have both a slug and an item_id, we use the id to pick the
+    expected orientation, then verify against the slug. Falls back to
+    "Title - Artist" reading when we can't determine.
+    """
     if not text or " - " not in text:
         return text.strip(), ""
-    if kind == "album":
-        artist, title = text.split(" - ", 1)
-        return title.strip(), artist.strip()
-    title, artist = text.rsplit(" - ", 1)
-    return title.strip(), artist.strip()
+    left, right = [s.strip() for s in text.split(" - ", 1)]
+
+    if slug and item_id:
+        slug_lower = slug.lower()
+        left_norm  = _normalize_slug(left)
+        right_norm = _normalize_slug(right)
+        if left_norm and right_norm:
+            left_pos  = slug_lower.find(left_norm)
+            right_pos = slug_lower.find(right_norm)
+            if left_pos >= 0 and right_pos >= 0:
+                orient = _slug_orientation(item_id)
+                if orient == "artist-title":
+                    # First in slug = artist
+                    if left_pos < right_pos:
+                        return right, left  # left=artist, right=title
+                    else:
+                        return left, right  # right=artist, left=title
+                else:  # title-artist
+                    if left_pos < right_pos:
+                        return left, right  # left=title, right=artist
+                    else:
+                        return right, left  # right=title, left=artist
+
+    # No slug or slug doesn't help — default to "Title - Artist".
+    return left, right
 
 
 def extract_album_tracks(html: str) -> list[dict]:
@@ -533,6 +661,11 @@ def parse_detail(html: str, kind: str) -> dict:
     else:
         if song_line:
             if " - " in song_line:
+                # The Song: line is inconsistent across djjohal pages
+                # (sometimes "Title - Artist", sometimes "Artist - Title").
+                # Pick the more common reading here; the caller in
+                # _process_detail_result verifies orientation against
+                # the slug and swaps if needed.
                 title, artist = [s.strip() for s in song_line.split(" - ", 1)]
             else:
                 title = song_line.strip()
@@ -621,7 +754,7 @@ def upsert_listing_entry(conn, entry: dict, kind: str, now_iso: str) -> bool:
             (now_iso, entry["listing_text"], kind, entry["id"]),
         )
         return False
-    lt_title, lt_artist = parse_listing_text(entry["listing_text"], kind)
+    lt_title, lt_artist = parse_listing_text(entry["listing_text"], kind, entry.get("slug", ""), entry.get("id", ""))
     rank = _next_discovery_rank(conn)
     conn.execute(
         "INSERT INTO items (kind, id, slug, url_kind, detail_url, title, artist, "
@@ -732,11 +865,31 @@ def _process_detail_result(conn, row, html, kind, now_iso):
     """
     d = parse_detail(html, kind)
 
-    lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", kind)
+    slug = row["slug"] or ""
+    lt_title, lt_artist = parse_listing_text(row["listing_text"] or "", kind, slug, row["id"])
     title  = d["title"]  or row["title"]  or lt_title  or ""
     artist = d["artist"] or row["artist"] or lt_artist or ""
     if lt_title and lt_artist:
         title, artist = lt_title, lt_artist
+
+    # Slug-verify orientation for singles. djjohal's Song-line and listing
+    # text are both inconsistent across the catalog. The slug is reliable
+    # when combined with the id-based orientation (new ids = 'artist-title',
+    # old ids = 'title-artist').
+    if kind == "single" and slug and title and artist:
+        slug_lower = slug.lower()
+        t_norm = _normalize_slug(title)
+        a_norm = _normalize_slug(artist)
+        if t_norm and a_norm and t_norm in slug_lower and a_norm in slug_lower:
+            t_pos = slug_lower.find(t_norm)
+            a_pos = slug_lower.find(a_norm)
+            orient = _slug_orientation(row["id"])
+            if orient == "artist-title":
+                correct = a_pos < t_pos
+            else:
+                correct = t_pos < a_pos
+            if not correct:
+                title, artist = artist, title
 
     album_tracks_json = json.dumps(d["album_tracks"], ensure_ascii=False) if d["album_tracks"] else ""
 

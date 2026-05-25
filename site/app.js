@@ -649,21 +649,19 @@ const ORIGINAL_TITLE = document.title;
  * Auto / lock-screen widget shows a music-note placeholder instead of the
  * cover.
  *
- * Fix: route the image through images.weserv.nl, a free public image
- * proxy with CORS enabled and a CDN cache. We also use ?w=512 to resize
- * down, since BT widgets typically render at ~200-300px anyway and
- * shipping a 500KB original cover over Bluetooth is wasteful.
+ * Fix: route through images.weserv.nl — a free public image proxy with
+ * CORS enabled.
  *
- * This is ONLY used for MediaSession artwork. The on-page <img> tags
- * keep using the direct djjohal URL — they don't need CORS to render.
+ * Why no resize: djjohal already serves from lq.djjohal.com (their LOW-
+ * quality CDN), so covers are already a few hundred pixels. Each ?w=N
+ * value is a different cache key on weserv — passing 5 sizes meant 5
+ * separate fetches that didn't benefit from each other. A single URL
+ * with no transform = one fast cached fetch.
  */
-function corsArtworkUrl(rawUrl, size) {
+function corsArtworkUrl(rawUrl) {
   if (!rawUrl) return "";
-  // Strip protocol; weserv expects the bare host+path.
   const stripped = rawUrl.replace(/^https?:\/\//, "");
-  const w = size || 512;
-  // we=512 resizes (max width), output=jpg ensures consistent format
-  return `https://images.weserv.nl/?url=${encodeURIComponent(stripped)}&w=${w}&output=jpg`;
+  return `https://images.weserv.nl/?url=${encodeURIComponent(stripped)}`;
 }
 
 function updateMediaSession(item) {
@@ -682,14 +680,11 @@ function updateMediaSession(item) {
 
   try {
     const cover = item.cover || "";
+    // ONE artwork entry — Android picks it regardless of declared size.
+    // Declaring multiple sizes meant multiple fetches that competed and
+    // sometimes none completed in time for the BT bridge to relay.
     const artwork = cover ? [
-      // Multiple sizes via the CORS proxy. Tesla/Android Auto/iOS pick
-      // whichever matches their display best.
-      { src: corsArtworkUrl(cover, 96),  sizes: "96x96",   type: "image/jpeg" },
-      { src: corsArtworkUrl(cover, 192), sizes: "192x192", type: "image/jpeg" },
-      { src: corsArtworkUrl(cover, 256), sizes: "256x256", type: "image/jpeg" },
-      { src: corsArtworkUrl(cover, 384), sizes: "384x384", type: "image/jpeg" },
-      { src: corsArtworkUrl(cover, 512), sizes: "512x512", type: "image/jpeg" },
+      { src: corsArtworkUrl(cover), sizes: "512x512", type: "image/jpeg" },
     ] : [];
 
     navigator.mediaSession.metadata = new MediaMetadata({

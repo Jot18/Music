@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-25T04:34:42+00:00",
+  "generated_at": "2026-05-25T04:57:33+00:00",
   "stats": {
     "total_singles": 4795,
     "total_albums": 800,
@@ -15,8 +15,8 @@
         {
           "id": "736760",
           "kind": "single",
-          "title": "Jassi Sohal",
-          "artist": "Jaane 2",
+          "title": "Jaane 2",
+          "artist": "Jassi Sohal",
           "music": "Deep Gherra",
           "lyrics": "Raajinder",
           "label": "Jassi Sohal Music",
@@ -36,9 +36,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736760/128/Jaane 2.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=WgsQyTGtdoQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -65,9 +65,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736759/128/Alone.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=LdyR_VNB-aE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -94,9 +94,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736758/128/Mil Ke Baithange.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=GORDxiEmCGo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -123,9 +123,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736757/128/Yaad Mutiyar Ho Gayi.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=FZi6srxqwkQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -152,9 +152,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736755/128/Haal Mitran Da.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=k83OJfci8ww",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -181,9 +181,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736754/128/Jogi.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=NK41esiKUGY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -210,9 +210,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736753/128/Chardikala.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=c4lnlorTDh4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -239,9 +239,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736752/128/Dream Chaser.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=8pTjOL5bqH0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -268,9 +268,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736751/128/Hankari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=aQwTWsXfa4I",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -297,9 +297,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736750/128/Sparrow.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=m9ujKVvUfls",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -326,9 +326,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736747/128/Main Vekhna.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=8g-tO1DKGMQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -355,9 +355,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736746/128/Dasso ?.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=CTYkR6aZ5Wo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -384,9 +384,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736745/128/3rd Eye.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=mpFZuWwTMkg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -413,9 +413,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736744/128/Times Up.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=m1XOrG4ihNA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -442,9 +442,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736743/128/About Me.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=rgjLFSpuJxc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -471,9 +471,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736742/128/KIM JONG UN.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=0IEjbp-YycA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -500,9 +500,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736741/128/Raho Bachke.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=283OEmZItUA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -529,9 +529,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736740/128/Alone Ft. Kiran Bajwa.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=QLLebHU2E7c",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -558,9 +558,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736737/128/ISHQ.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=nIC4hWtGi9A",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -587,16 +587,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736736/128/Sheeshe Down Ft. Deepak Dhillon.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=4XqHijRixf0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736735",
           "kind": "single",
-          "title": "OtaaL",
-          "artist": "Lanka",
+          "title": "Lanka",
+          "artist": "OtaaL",
           "music": "OtaaL",
           "lyrics": "OtaaL",
           "label": "OtaaL Music",
@@ -616,9 +616,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736735/128/Lanka.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Pl813_cKJjk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -645,9 +645,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736734/128/Gundeya Da Raja.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=9A2B-whPOiw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -674,16 +674,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736733/128/Jawani Flex.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=0p6ympN11Zg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736732",
           "kind": "single",
-          "title": "Sargi Maan",
-          "artist": "Moh Diyan Tandan",
+          "title": "Moh Diyan Tandan",
+          "artist": "Sargi Maan",
           "music": "Real Sach",
           "lyrics": "Preet Ahluwalia",
           "label": "Sargi Maan Music",
@@ -703,9 +703,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736732/128/Moh Diyan Tandan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=YJJwEaS0214",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -732,16 +732,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736731/128/Torr.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-SL4N-kunvI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736729",
           "kind": "single",
-          "title": "Harsimar",
-          "artist": "All For You",
+          "title": "All For You",
+          "artist": "Harsimar",
           "music": "Uptown Slick",
           "lyrics": "Harsimran",
           "label": "Harsimar Music",
@@ -761,16 +761,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736729/128/All For You.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=a40PBCp7nac",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736728",
           "kind": "single",
-          "title": "Tarna",
-          "artist": "Playboy",
+          "title": "Playboy",
+          "artist": "Tarna",
           "music": "Byg Byrd",
           "lyrics": "Tarna",
           "label": "Brown Boys Recordz",
@@ -790,16 +790,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736728/128/Playboy.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VCNIEWhm_f8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736727",
           "kind": "single",
-          "title": "Mehtab Virk",
-          "artist": "Lekha Jokha",
+          "title": "Lekha Jokha",
+          "artist": "Mehtab Virk",
           "music": "Lyrics:",
           "lyrics": "Sukhbir Randhawa",
           "label": "The Crack Team",
@@ -819,9 +819,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736727/128/Lekha Jokha.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=MhDh9nQ29dw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -848,9 +848,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736726/128/Remember 2.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cGkdsQNjqW4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -877,9 +877,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736725/128/Carry On Jatta 4 - Title Track.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=chXLsl83byA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -906,16 +906,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736724/128/Bageecha.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=YSBrGg4eEn4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736723",
           "kind": "single",
-          "title": "Yaad",
-          "artist": "Fade Low",
+          "title": "Fade Low",
+          "artist": "Yaad",
           "music": "Jay Dee",
           "lyrics": "Yaad",
           "label": "Yaad Music",
@@ -935,9 +935,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736723/128/Fade Low.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=LX6cHACLbMI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -964,9 +964,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736722/128/Affection.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=6IPsJmfqPrg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -993,16 +993,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736721/128/Mahi Mera Kale Rang Da.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=vWtx26I8H4w",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736720",
           "kind": "single",
-          "title": "Rav Dhaliwal",
-          "artist": "Leave Home",
+          "title": "Leave Home",
+          "artist": "Rav Dhaliwal",
           "music": "Rav Dhaliwal",
           "lyrics": "Rav Dhaliwal",
           "label": "Chill Vibe Music",
@@ -1022,16 +1022,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736720/128/Leave Home.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=0mwwuGR6XFM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736719",
           "kind": "single",
-          "title": "Harman Mann",
-          "artist": "Pangebaaz Ft. Gurlez Akhtar",
+          "title": "Pangebaaz Ft. Gurlez Akhtar",
+          "artist": "Harman Mann",
           "music": "Sharry Hassan",
           "lyrics": "Preet Judge",
           "label": "Ziiki Media",
@@ -1051,9 +1051,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736719/128/Pangebaaz Ft. Gurlez Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VLGk9Pr7Rtc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1080,16 +1080,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736718/128/Je Sohni Hundi Ft. Gurlej Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cRXYFwBjs6M",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736717",
           "kind": "single",
-          "title": "Flop Likhari",
-          "artist": "Ambani Ft. Deepak Dhillon",
+          "title": "Ambani Ft. Deepak Dhillon",
+          "artist": "Flop Likhari",
           "music": "Jassi X",
           "lyrics": "Flop Likhari",
           "label": "Ziiki Media",
@@ -1109,9 +1109,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736717/128/Ambani Ft. Deepak Dhillon.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=MVMAdpWJlfY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1138,9 +1138,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736716/128/BLISS.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=GeusKht8ULU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1167,9 +1167,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736715/128/Risk.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=n5JvAt_Qx4U",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1196,9 +1196,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736714/128/Naslaan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-50eMQVOkHQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1225,16 +1225,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736713/128/Mehar Khuda Di.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=7Pfnmtko5qE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736712",
           "kind": "single",
-          "title": "Deep Bajwa",
-          "artist": "Tera Koka",
+          "title": "Tera Koka",
+          "artist": "Deep Bajwa",
           "music": "Guri Nimana",
           "lyrics": "Manjeet Dhariwal",
           "label": "K&M Records",
@@ -1254,16 +1254,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736712/128/Tera Koka.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=nHUHeYtBNI0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736711",
           "kind": "single",
-          "title": "Gopi Manku",
-          "artist": "Take Care",
+          "title": "Take Care",
+          "artist": "Gopi Manku",
           "music": "N Vee",
           "lyrics": "Gopi Manku",
           "label": "Gopi Manku Music",
@@ -1283,16 +1283,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736711/128/Take Care.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=to8E_ftHAlI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736710",
           "kind": "single",
-          "title": "Sandy Nagra",
-          "artist": "Priceless",
+          "title": "Priceless",
+          "artist": "Sandy Nagra",
           "music": "Dr Zeus",
           "lyrics": "Amarjit Singh",
           "label": "9144 Records",
@@ -1312,16 +1312,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736710/128/Priceless.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=u6KUTTDnFOg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736709",
           "kind": "single",
-          "title": "Surinder Baba",
-          "artist": "Tareef Ft. Saanjh Kaur",
+          "title": "Tareef Ft. Saanjh Kaur",
+          "artist": "Surinder Baba",
           "music": "The Junior",
           "lyrics": "Surinder Baba",
           "label": "Narang Entertainment",
@@ -1341,16 +1341,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736709/128/Tareef Ft. Saanjh Kaur.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=jKpa8UBdY2U",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736708",
           "kind": "single",
-          "title": "Dheera Chatha",
-          "artist": "Heer Meri 2",
+          "title": "Heer Meri 2",
+          "artist": "Dheera Chatha",
           "music": "Baxbee",
           "lyrics": "Ruby Chatha",
           "label": "Dheera Chatha Music",
@@ -1370,16 +1370,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736708/128/Heer Meri 2.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=LwMuF0PRQ7I",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736707",
           "kind": "single",
-          "title": "Lovi Boparai",
-          "artist": "Yaar Vaste",
+          "title": "Yaar Vaste",
+          "artist": "Lovi Boparai",
           "music": "Lipci",
           "lyrics": "Navdeep Aulakh",
           "label": "Farmer Studios",
@@ -1399,9 +1399,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736707/128/Yaar Vaste.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=JUGMr75Y8UQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1428,16 +1428,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736706/128/Waari Jaavan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VZw9bn4GjWc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736705",
           "kind": "single",
-          "title": "Sachin Sheriya",
-          "artist": "Challa Ki Kra Ft. Deep Klair",
+          "title": "Challa Ki Kra Ft. Deep Klair",
+          "artist": "Sachin Sheriya",
           "music": "Harsh Nussi",
           "lyrics": "Deep Klair",
           "label": "Nawe Munde",
@@ -1457,16 +1457,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736705/128/Challa Ki Kra Ft. Deep Klair.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=oodLlwVDEtg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736703",
           "kind": "single",
-          "title": "Harsh Deogan",
-          "artist": "My Time Ft. Gurlez Akhtar",
+          "title": "My Time Ft. Gurlez Akhtar",
+          "artist": "Harsh Deogan",
           "music": "Sharan Shergill",
           "lyrics": "Harsh Deogan",
           "label": "IVY Music",
@@ -1486,16 +1486,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736703/128/My Time Ft. Gurlez Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=BDgJyycciZw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736702",
           "kind": "single",
-          "title": "Gill Manuke",
-          "artist": "Phulkari",
+          "title": "Phulkari",
+          "artist": "Gill Manuke",
           "music": "Laddi Gill",
           "lyrics": "Anmol Deol",
           "label": "CK ETERNI RECORDS",
@@ -1515,16 +1515,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736702/128/Phulkari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=QRVtgXm23vk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736701",
           "kind": "single",
-          "title": "Gurlal Brar",
-          "artist": "SAADE WANGU",
+          "title": "SAADE WANGU",
+          "artist": "Gurlal Brar",
           "music": "FAQIR MUSIC",
           "lyrics": "Sidhu Jajjal",
           "label": "FATEH VIBE",
@@ -1544,16 +1544,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736701/128/SAADE WANGU.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=mS11Zk-DErY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736700",
           "kind": "single",
-          "title": "Laddi Chhajla",
-          "artist": "Locket Ft. Jasmeen Akhtar",
+          "title": "Locket Ft. Jasmeen Akhtar",
+          "artist": "Laddi Chhajla",
           "music": "Gaiphy",
           "lyrics": "Laddi Chhajla",
           "label": "Motivate Music",
@@ -1573,16 +1573,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736700/128/Locket Ft. Jasmeen Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=lYdeFtyZ4po",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736699",
           "kind": "single",
-          "title": "Meet Virk",
-          "artist": "Purse Ft. Karam Brar",
+          "title": "Purse Ft. Karam Brar",
+          "artist": "Meet Virk",
           "music": "Sobit",
           "lyrics": "Gurnaxh Mallhi",
           "label": "Bro Beat Music",
@@ -1602,9 +1602,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736699/128/Purse Ft. Karam Brar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Mi64YfIyMpA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1631,16 +1631,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736698/128/911.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=L8wVfOOuMWo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736696",
           "kind": "single",
-          "title": "Lakhwinder Wadali",
-          "artist": "Kaafi Hai",
+          "title": "Kaafi Hai",
+          "artist": "Lakhwinder Wadali",
           "music": "Sufiyan Bhatt",
           "lyrics": "Sufiyan Bhatt",
           "label": "Wadali Music",
@@ -1660,16 +1660,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736696/128/Kaafi Hai.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=_3QZPlGErn4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736695",
           "kind": "single",
-          "title": "Manjit Singh Sohi",
-          "artist": "Punjab Dian Gallan",
+          "title": "Punjab Dian Gallan",
+          "artist": "Manjit Singh Sohi",
           "music": "Deep Royce",
           "lyrics": "Jatinder Sahota",
           "label": "Sahota StudioZ",
@@ -1689,16 +1689,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736695/128/Punjab Dian Gallan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=YoaPBHp4L6o",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736694",
           "kind": "single",
-          "title": "Veeru Dhillon",
-          "artist": "Single Call",
+          "title": "Single Call",
+          "artist": "Veeru Dhillon",
           "music": "Little Boi",
           "lyrics": "Narinder Batth",
           "label": "RICH GANG ENTERTAINMENT",
@@ -1718,9 +1718,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736694/128/Single Call.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=ZOZizasYJ0k",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1747,16 +1747,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736693/128/Lost In You.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=yjNU9XUIFNY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736692",
           "kind": "single",
-          "title": "Gagan Balran",
-          "artist": "I Know",
+          "title": "I Know",
+          "artist": "Gagan Balran",
           "music": "Freezzy Beatz",
           "lyrics": "Bobby Gurm",
           "label": "Gagan Balran Music",
@@ -1776,16 +1776,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736692/128/I Know.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=E1ZVGYI6kFc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736691",
           "kind": "single",
-          "title": "Manavgeet Gill",
-          "artist": "Jaadugar",
+          "title": "Jaadugar",
+          "artist": "Manavgeet Gill",
           "music": "Jaymeet",
           "lyrics": "Kanji Porh",
           "label": "Moviebox Record",
@@ -1805,16 +1805,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736691/128/Jaadugar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=S0xohXYrfHg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736690",
           "kind": "single",
-          "title": "Eddy",
-          "artist": "My Turn",
+          "title": "My Turn",
+          "artist": "Eddy",
           "music": "Dilmaan",
           "lyrics": "Sagar",
           "label": "Eddy Baretewala Music",
@@ -1834,16 +1834,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736690/128/My Turn.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=6hou-3jcnsA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736689",
           "kind": "single",
-          "title": "SNXRE",
-          "artist": "Kill Switch Flow",
+          "title": "Kill Switch Flow",
+          "artist": "SNXRE",
           "music": "Mxrci",
           "lyrics": "SNXRE",
           "label": "SNXRE Music",
@@ -1863,9 +1863,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736689/128/Kill Switch Flow.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=J25osuyC8mU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -1892,16 +1892,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736688/128/Mashhoor.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=rbsvPQ14T5g",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736687",
           "kind": "single",
-          "title": "Harman Virk",
-          "artist": "Nashile Nain Ft. Gurlez Akhtar",
+          "title": "Nashile Nain Ft. Gurlez Akhtar",
+          "artist": "Harman Virk",
           "music": "Dr Zeus",
           "lyrics": "Matt Sheron Wala",
           "label": "Big Horn Music",
@@ -1921,16 +1921,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736687/128/Nashile Nain Ft. Gurlez Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-sjobUvxjPE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736686",
           "kind": "single",
-          "title": "Shonky Randhawa",
-          "artist": "Hawa Shehar Di Ft. Gurlez Akhtar",
+          "title": "Hawa Shehar Di Ft. Gurlez Akhtar",
+          "artist": "Shonky Randhawa",
           "music": "Dilmaan",
           "lyrics": "Manpreet Singh",
           "label": "Nambardar Production",
@@ -1950,16 +1950,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736686/128/Hawa Shehar Di Ft. Gurlez Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=I7Px2iLcfYQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736685",
           "kind": "single",
-          "title": "Manie Sandhu",
-          "artist": "Round Ft. Kiran Bajwa",
+          "title": "Round Ft. Kiran Bajwa",
+          "artist": "Manie Sandhu",
           "music": "Mani Sidhu",
           "lyrics": "Amar Jalal",
           "label": "Culture Beats",
@@ -1979,16 +1979,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736685/128/Round Ft. Kiran Bajwa.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=NJoh0S1jQdE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736684",
           "kind": "single",
-          "title": "Manjinder Sohi",
-          "artist": "SOS Ft. Veer Sandhu",
+          "title": "SOS Ft. Veer Sandhu",
+          "artist": "Manjinder Sohi",
           "music": "Haakam",
           "lyrics": "Manjinder Sohi",
           "label": "MS Records",
@@ -2008,16 +2008,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736684/128/SOS Ft. Veer Sandhu.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=NBat3Sk6QMg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736683",
           "kind": "single",
-          "title": "Gurlluv",
-          "artist": "Nsa",
+          "title": "Nsa",
+          "artist": "Gurlluv",
           "music": "Inder Dhammu",
           "lyrics": "Balkar",
           "label": "Gurlluv Gill Music",
@@ -2037,16 +2037,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736683/128/Nsa.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=ym145t31DOQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736682",
           "kind": "single",
-          "title": "Malle Ala Guri",
-          "artist": "PIA",
+          "title": "PIA",
+          "artist": "Malle Ala Guri",
           "music": "Batth",
           "lyrics": "Malle Ala Guri",
           "label": "Raunta Records",
@@ -2066,16 +2066,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736682/128/PIA.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=fY2sm6TAO54",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736680",
           "kind": "single",
-          "title": "Avvy Khaira",
-          "artist": "Zindagi",
+          "title": "Zindagi",
+          "artist": "Avvy Khaira",
           "music": "Meavin",
           "lyrics": "Avvy Khaira",
           "label": "T-Series",
@@ -2095,16 +2095,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736680/128/Zindagi.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=6xsKxal4NkY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736679",
           "kind": "single",
-          "title": "Palwinder Tohra",
-          "artist": "Turbo",
+          "title": "Turbo",
+          "artist": "Palwinder Tohra",
           "music": "Ronn Sandhu",
           "lyrics": "Saheb",
           "label": "Palwinder Tohra Music",
@@ -2124,9 +2124,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736679/128/Turbo.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=dtN1Sgk21is",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -2153,9 +2153,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736678/128/Jaiye Sajana - Recreated.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=11M7U4DvMoc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -2182,16 +2182,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736677/128/Ishq Khumari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cCY_hiBYM6I",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736676",
           "kind": "single",
-          "title": "Karam Brar",
-          "artist": "Shades",
+          "title": "Shades",
+          "artist": "Karam Brar",
           "music": "Desi Trap Music",
           "lyrics": "Jaggi Bathinde Wala",
           "label": "Karam Brar Music",
@@ -2211,16 +2211,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736676/128/Shades.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-sFlF3amRW0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736675",
           "kind": "single",
-          "title": "Balvir Boparai",
-          "artist": "Koke Ft. Jasmeen Akhtar",
+          "title": "Koke Ft. Jasmeen Akhtar",
+          "artist": "Balvir Boparai",
           "music": "The Boss",
           "lyrics": "Balvir Boparai",
           "label": "Jass Records",
@@ -2240,16 +2240,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736675/128/Koke Ft. Jasmeen Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Q2VTBWbW67M",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736674",
           "kind": "single",
-          "title": "Balkar Ankhila",
-          "artist": "Khadaka",
+          "title": "Khadaka",
+          "artist": "Balkar Ankhila",
           "music": "Lucky Ankhila",
           "lyrics": "Balkar Ankhila",
           "label": "Balkar Ankhila Music",
@@ -2269,9 +2269,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736674/128/Khadaka.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VjJ9LbNhSLI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -2298,16 +2298,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736673/128/Pagal Nayi Hona.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=PXtQIqtxJno",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736672",
           "kind": "single",
-          "title": "Raja Kang",
-          "artist": "They Ain-t Us",
+          "title": "They Ain-t Us",
+          "artist": "Raja Kang",
           "music": "INDER SAHOTA",
           "lyrics": "Raja Kang",
           "label": "Raja Kang Music",
@@ -2327,16 +2327,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736672/128/They Ain-t Us.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=msBdr4zvHCk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736671",
           "kind": "single",
-          "title": "Inderpal Moga",
-          "artist": "Nazar Ft. Chani Nattan",
+          "title": "Nazar Ft. Chani Nattan",
+          "artist": "Inderpal Moga",
           "music": "Ezu",
           "lyrics": "Chani Nattan",
           "label": "Chani Nattan Ent. Inc",
@@ -2356,16 +2356,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736671/128/Nazar Ft. Chani Nattan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=2JM4yY293-k",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736670",
           "kind": "single",
-          "title": "Gavy Bawa",
-          "artist": "Its Me",
+          "title": "Its Me",
+          "artist": "Gavy Bawa",
           "music": "Legacy",
           "lyrics": "Gavy Bawa",
           "label": "Gavy Bawa Music",
@@ -2385,16 +2385,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736670/128/Its Me.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=1UfxH1Bt3IM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736669",
           "kind": "single",
-          "title": "Kotti",
-          "artist": "No Rival",
+          "title": "No Rival",
+          "artist": "Kotti",
           "music": "Meavin",
           "lyrics": "Kotti",
           "label": "Kotti Music",
@@ -2414,16 +2414,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736669/128/No Rival.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=AGef7OWqLYY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736667",
           "kind": "single",
-          "title": "Savi Kahlon",
-          "artist": "Phullaan Jeha Chehra",
+          "title": "Phullaan Jeha Chehra",
+          "artist": "Savi Kahlon",
           "music": "The Masterz",
           "lyrics": "Savi Kahlon",
           "label": "Tips Music",
@@ -2443,16 +2443,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736667/128/Phullaan Jeha Chehra.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=xGDiIsdsVr0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736666",
           "kind": "single",
-          "title": "Harry Batth",
-          "artist": "Kamm Set",
+          "title": "Kamm Set",
+          "artist": "Harry Batth",
           "music": "Nav Prince",
           "lyrics": "Kirat",
           "label": "BOP Music",
@@ -2472,9 +2472,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736666/128/Kamm Set.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=6RsLPdfr6YM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -2501,16 +2501,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736665/128/Fire Ne Ft. Azaad 4L.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=aIGGkj2cTcE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736664",
           "kind": "single",
-          "title": "Inder Grewal",
-          "artist": "God Knows",
+          "title": "God Knows",
+          "artist": "Inder Grewal",
           "music": "Gill Saab Music",
           "lyrics": "Lakhvir Singh Gill",
           "label": "Inder Grewal Music",
@@ -2530,16 +2530,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736664/128/God Knows.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=UE2cE5p2Hiw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736663",
           "kind": "single",
-          "title": "Harry Brar",
-          "artist": "Maruti Rakhi Aa",
+          "title": "Maruti Rakhi Aa",
+          "artist": "Harry Brar",
           "music": "Muzik Amy",
           "lyrics": "Harry Brar",
           "label": "Harry Brar Music",
@@ -2559,16 +2559,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736663/128/Maruti Rakhi Aa.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=J_ohaBZRghQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736662",
           "kind": "single",
-          "title": "Punam Gill",
-          "artist": "Sone Warga",
+          "title": "Sone Warga",
+          "artist": "Punam Gill",
           "music": "Shabby",
           "lyrics": "Vicky Gill",
           "label": "Brown String Records",
@@ -2588,16 +2588,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736662/128/Sone Warga.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=uWhCN7sOEj8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736661",
           "kind": "single",
-          "title": "Harmeet Aulakh",
-          "artist": "Thaa Parcha Ft. Deepak Dhillon",
+          "title": "Thaa Parcha Ft. Deepak Dhillon",
+          "artist": "Harmeet Aulakh",
           "music": "Snappy",
           "lyrics": "Arsh Fatehgarh",
           "label": "Harmeet Aulakh Music",
@@ -2617,16 +2617,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736661/128/Thaa Parcha Ft. Deepak Dhillon.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=gF-mNXej1dc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736660",
           "kind": "single",
-          "title": "Amar Sajaalpuria",
-          "artist": "Saari Raat",
+          "title": "Saari Raat",
+          "artist": "Amar Sajaalpuria",
           "music": "Amar Sajaalpuria",
           "lyrics": "Amar Sajaalpuria",
           "label": "Amar Sajaalpuria Music",
@@ -2646,9 +2646,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736660/128/Saari Raat.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=UtsF0dkeVRg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
@@ -2675,16 +2675,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736659/128/Kilometer Ft. Sudesh Kumari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=gywX3_NPIeI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736657",
           "kind": "single",
-          "title": "Jasinder",
-          "artist": "REESAN",
+          "title": "REESAN",
+          "artist": "Jasinder",
           "music": "FAQIR MUSIC",
           "lyrics": "Sidhu Jajjal",
           "label": "FATEH VIBE",
@@ -2704,16 +2704,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736657/128/REESAN.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=l9QnipAtDmY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736656",
           "kind": "single",
-          "title": "Kaur B",
-          "artist": "Hostel",
+          "title": "Hostel",
+          "artist": "Kaur B",
           "music": "Avvy Sra",
           "lyrics": "Shree Brar",
           "label": "Shree Brar Music",
@@ -2733,16 +2733,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736656/128/Hostel.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-ld003qBH5E",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736655",
           "kind": "single",
-          "title": "Jorge Gill",
-          "artist": "Jogi",
+          "title": "Jogi",
+          "artist": "Jorge Gill",
           "music": "Treff E",
           "lyrics": "Armaan Sangha",
           "label": "Jorge Gill Music",
@@ -2762,16 +2762,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736655/128/Jogi.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Q32BC2Vz13M",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736654",
           "kind": "single",
-          "title": "Sukshinder Shinda",
-          "artist": "Giddha Queen",
+          "title": "Giddha Queen",
+          "artist": "Sukshinder Shinda",
           "music": "Sukshinder Shinda",
           "lyrics": "Sukshinder Shinda",
           "label": "Sukshinder Shinda Records",
@@ -2791,16 +2791,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736654/128/Giddha Queen.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=HMfqWb7zh3w",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736652",
           "kind": "single",
-          "title": "Himesh Reshammiya",
-          "artist": "Sharab",
+          "title": "Sharab",
+          "artist": "Himesh Reshammiya",
           "music": "Various Artists",
           "lyrics": "Various Artists",
           "label": "Play DMF",
@@ -2820,16 +2820,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736652/128/Sharab.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=N9YIDXwrFeE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736651",
           "kind": "single",
-          "title": "Preet Harpal",
-          "artist": "Peengh Teri",
+          "title": "Peengh Teri",
+          "artist": "Preet Harpal",
           "music": "Desi Crew",
           "lyrics": "Preet Harpal",
           "label": "Vanjaray Beats",
@@ -2849,16 +2849,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736651/128/Peengh Teri.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=z73BE_kmRio",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736650",
           "kind": "single",
-          "title": "Prince Narula",
-          "artist": "Drunk and Drive",
+          "title": "Drunk and Drive",
+          "artist": "Prince Narula",
           "music": "Jaymeet",
           "lyrics": "Rony Ajnali",
           "label": "Prince Narula Music",
@@ -2878,16 +2878,16 @@
             "zip128": "https://hd.djjohal.com/download/zip/736650/128/Drunk and Drive.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=dje5yQCr_Uw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         },
         {
           "id": "736648",
           "kind": "single",
-          "title": "Lafaz",
-          "artist": "Nazar Na Lagge",
+          "title": "Nazar Na Lagge",
+          "artist": "Lafaz",
           "music": "Deol Harman",
           "lyrics": "Deol Harman",
           "label": "Deol Harman Music",
@@ -2907,9 +2907,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736648/128/Nazar Na Lagge.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=sRwGzWveSrg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_singles"
         }
       ],
@@ -2965,9 +2965,9 @@
               "title": "Raaje (feat. Mahakaal Baba Sukhdev Singh Ji)"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=1MN8ZHldx7g",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3060,9 +3060,9 @@
               "title": "Skyfull"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=w1HifS-RdY4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3130,9 +3130,9 @@
               "title": "Shady"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=j2eSfYkdQUg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3185,9 +3185,9 @@
               "title": "VPO"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=V_-0eeBS1gI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3230,9 +3230,9 @@
               "title": "Raule"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=i0RJTOFwcgk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3285,9 +3285,9 @@
               "title": "Stackin"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=uXRaNicDg68",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3340,9 +3340,9 @@
               "title": "SAME CREW"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=p3FQKtpxl0k",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3395,9 +3395,9 @@
               "title": "Yaarian"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=0Z75XO09sTs",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3445,9 +3445,9 @@
               "title": "Sat Rang Da"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=2OxHl8yqD_g",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3495,9 +3495,9 @@
               "title": "Tere Layi Tadfa Ni"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=WxbV3dLr350",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3545,9 +3545,9 @@
               "title": "Lagda Ni Jee"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=BCfdayJZFmI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3595,9 +3595,9 @@
               "title": "Tera Ki Janda"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Ix6mFt-gBY8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3640,9 +3640,9 @@
               "title": "Mens Talk"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=yrGVkTfrPBw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3705,9 +3705,9 @@
               "title": "Yaarian"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=7PORC0MrRPA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3760,9 +3760,9 @@
               "title": "Superman"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=IE8_cSy7pNc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3810,9 +3810,9 @@
               "title": "Wheels"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=MpFt-leVDvg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3860,9 +3860,9 @@
               "title": "Wang"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=wRLUfLL_Hi4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3905,9 +3905,9 @@
               "title": "Peo Wari Ft. Arsh Poohla"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=YDYklEPSVtw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -3960,9 +3960,9 @@
               "title": "Without You"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=KURM2iFpn0c",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4015,9 +4015,9 @@
               "title": "Piche Hatt Ft. Miss Pooja"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=q5hjkRfhC8A",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4075,9 +4075,9 @@
               "title": "Zindagi"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=dO9bxRkgchE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4130,9 +4130,9 @@
               "title": "Yours Now"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=SaweUGGYcxk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4235,9 +4235,9 @@
               "title": "Whispers & Wounds"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=E7ergOnpO1Q",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4310,9 +4310,9 @@
               "title": "Up Down"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=xYqTrl3Gk7Q",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4360,9 +4360,9 @@
               "title": "Yaari Yaari"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=GLe_5eH25Fw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4420,9 +4420,9 @@
               "title": "Second Option (Revival)"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=kBc7ih2RSDE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4475,9 +4475,9 @@
               "title": "Kudi Chidi"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=j_Y1UCzNfrI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4530,9 +4530,9 @@
               "title": "ZAKHMI"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=2C-cBjmtsVU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4600,9 +4600,9 @@
               "title": "Time"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=gmhgHfbxFBw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4650,9 +4650,9 @@
               "title": "Morni"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=T9NTm4RThYQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4700,9 +4700,9 @@
               "title": "Moves"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=5DiEbzVtmyw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4760,9 +4760,9 @@
               "title": "Radkan"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=ORMOCsoQNHE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4825,9 +4825,9 @@
               "title": "Velly Chaal"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=fGIhu63ZUt0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4875,9 +4875,9 @@
               "title": "Where is Love"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=f1u0B5sWdAI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4925,9 +4925,9 @@
               "title": "Wrongman"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=3bvDGPfq3Wc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -4975,9 +4975,9 @@
               "title": "Kaun C"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=RbeQ73Pnn-A",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5030,9 +5030,9 @@
               "title": "Fantastic 5"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=9E2lo9mVCd4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5080,9 +5080,9 @@
               "title": "SURREY JAIL"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=5MhSH6hyQQ0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5155,9 +5155,9 @@
               "title": "Zikar"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=8dpVcx1Z0pM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5195,9 +5195,9 @@
               "title": "SNEAKY"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=hq_YJqYUB5c",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5245,9 +5245,9 @@
               "title": "WANG"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Hs4dg9WXk78",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5295,9 +5295,9 @@
               "title": "Vaarde Aa Jaan"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=5u2ZWN3aNSI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5345,9 +5345,9 @@
               "title": "Stand By"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=ODpcbXV8qBc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5415,9 +5415,9 @@
               "title": "Tohr Aap Boldi"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=x_nP0NxxJ90",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5465,9 +5465,9 @@
               "title": "Still in Love"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=L5x24OZqmNI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5520,9 +5520,9 @@
               "title": "Tracker"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=AnHn_GOjKek",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5580,9 +5580,9 @@
               "title": "YNG DRTY BSTRD"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=EWCvn2cIguM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5655,9 +5655,9 @@
               "title": "Misunderstood"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=aQ-SKIBNlAg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5705,9 +5705,9 @@
               "title": "Superstar"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=7UH7N0PNthA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5760,9 +5760,9 @@
               "title": "Tanhaiyan"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=eJSJMsiCos4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5815,9 +5815,9 @@
               "title": "Vlog"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=57-EHkjXq-k",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5865,9 +5865,9 @@
               "title": "Tu Kardi"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=-06QAr8HkM4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5935,9 +5935,9 @@
               "title": "Punjab"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=-yxsUr88m2w",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -5990,9 +5990,9 @@
               "title": "UNDERTAKER"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=f3473pxp3Lo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6040,9 +6040,9 @@
               "title": "LYF With You"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=O5SG_hftljA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6085,9 +6085,9 @@
               "title": "Degreeian"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Wy4TBnW-1SM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6125,9 +6125,9 @@
               "title": "Tipsy"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=vjLFhu3WLms",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6165,9 +6165,9 @@
               "title": "John Gotti"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=jBp3c8VtXuM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6215,9 +6215,9 @@
               "title": "Shera Shera"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=VBLyvbT_4vg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6270,9 +6270,9 @@
               "title": "Shelby"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=yxUCKGzGeIg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6320,9 +6320,9 @@
               "title": "Thug Love"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Np_oRMQZ_2c",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6375,9 +6375,9 @@
               "title": "Velly"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=c-sIG2awXzI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6420,9 +6420,9 @@
               "title": "Golden Glow"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=OVdCUaxyUOI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6465,9 +6465,9 @@
               "title": "Kavitava"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=ay_GS7IOt-M",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6515,9 +6515,9 @@
               "title": "Zindagi"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=h59uaoxe3RM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6560,9 +6560,9 @@
               "title": "Housefull"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=_P6R3QfiPVA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6610,9 +6610,9 @@
               "title": "SUIT"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=IaXSFHerXAQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6670,9 +6670,9 @@
               "title": "Raule"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=s7PTaj7bEz0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6720,9 +6720,9 @@
               "title": "Rabb"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=0N6_NYRo9UE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6775,9 +6775,9 @@
               "title": "Limelight"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=BYjenlPEJS8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6865,9 +6865,9 @@
               "title": "Vibe"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Rrv3JWwsuDo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6915,9 +6915,9 @@
               "title": "Rang"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=huelV9z2IGo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -6965,9 +6965,9 @@
               "title": "Uff"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Zo9eMZmF5Ig",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7015,9 +7015,9 @@
               "title": "Not a Lover"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=-Xy0WmexJgM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7065,9 +7065,9 @@
               "title": "One In A Million"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=1fvnjn2c9hY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7140,9 +7140,9 @@
               "title": "World Is Yours"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Y16Se__h3pM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7195,9 +7195,9 @@
               "title": "White Drug"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=xpPnM7efvc8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7255,9 +7255,9 @@
               "title": "Maalik Marzi Da"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=k3Q_9LaKL7M",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7310,9 +7310,9 @@
               "title": "Sikander"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=m9p5oL2T74Q",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7360,9 +7360,9 @@
               "title": "Yaar Purane"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=RmFCTo6fllY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7405,9 +7405,9 @@
               "title": "Lifetime"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=BwG3uxOEUyo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7450,9 +7450,9 @@
               "title": "STREETS"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=qyUSM7cUeH8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7500,9 +7500,9 @@
               "title": "Mehnat Chaddni Nai"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=YesZlTgRLnI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7585,9 +7585,9 @@
               "title": "Sajna Dour"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=g2c4MeCFP-E",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7640,9 +7640,9 @@
               "title": "Nalwa"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=NWvfFAFt4wg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7685,9 +7685,9 @@
               "title": "Teer"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=SvOS90mFPRM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7745,9 +7745,9 @@
               "title": "Tu Hi Hai"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=18vIN0A8dBY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7850,9 +7850,9 @@
               "title": "You & I"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=HI-K6OHJ_50",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -7915,9 +7915,9 @@
               "title": "Vardaat"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=hjhpkwg5GxQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8000,9 +8000,9 @@
               "title": "Thanedaar"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=-8PmfmL1Mes",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8060,9 +8060,9 @@
               "title": "Sone Di Janjeeri"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=_dVPoFLPsrs",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8105,9 +8105,9 @@
               "title": "Vahdey Kahdey"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=7b5O8D90XOE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8160,9 +8160,9 @@
               "title": "Wang"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=T8V-zJS7PO4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8220,9 +8220,9 @@
               "title": "Zigana"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=PHn5Q7hCjxw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8280,9 +8280,9 @@
               "title": "Too Many Girls"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=Je5WdZOlb-U",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8325,9 +8325,9 @@
               "title": "The Station"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=OmteQoLXZ0w",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8390,9 +8390,9 @@
               "title": "Zindgi"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=5n_9VFg6_Ig",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8455,9 +8455,9 @@
               "title": "SITUATIONSHIP"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=VDJUSds93QU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8515,9 +8515,9 @@
               "title": "Zindigi Maa"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=ZtyI4G7So3s",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         },
         {
@@ -8565,9 +8565,9 @@
               "title": "WeTwo"
             }
           ],
-          "youtube_url": "https://www.youtube.com/watch?v=EAu0gx3gfYg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "new_albums"
         }
       ],
@@ -8602,9 +8602,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736673/128/Pagal Nayi Hona.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=PXtQIqtxJno",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 1
         },
@@ -8632,9 +8632,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736759/128/Alone.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=LdyR_VNB-aE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 2
         },
@@ -8662,9 +8662,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736757/128/Yaad Mutiyar Ho Gayi.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=FZi6srxqwkQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 3
         },
@@ -8692,9 +8692,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736746/128/Dasso ?.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=CTYkR6aZ5Wo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 4
         },
@@ -8722,9 +8722,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736754/128/Jogi.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=NK41esiKUGY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 5
         },
@@ -8752,9 +8752,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736747/128/Main Vekhna.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=8g-tO1DKGMQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 6
         },
@@ -8782,9 +8782,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736755/128/Haal Mitran Da.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=k83OJfci8ww",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 7
         },
@@ -8812,9 +8812,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736751/128/Hankari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=aQwTWsXfa4I",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 8
         },
@@ -8842,9 +8842,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736659/128/Kilometer Ft. Sudesh Kumari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=gywX3_NPIeI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 9
         },
@@ -8872,9 +8872,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736713/128/Mehar Khuda Di.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=7Pfnmtko5qE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 10
         },
@@ -8902,9 +8902,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736758/128/Mil Ke Baithange.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=GORDxiEmCGo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 11
         },
@@ -8932,9 +8932,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736753/128/Chardikala.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=c4lnlorTDh4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 12
         },
@@ -8962,9 +8962,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736752/128/Dream Chaser.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=8pTjOL5bqH0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 13
         },
@@ -8992,9 +8992,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736741/128/Raho Bachke.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=283OEmZItUA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 14
         },
@@ -9022,9 +9022,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736721/128/Mahi Mera Kale Rang Da.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=vWtx26I8H4w",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 15
         },
@@ -9052,9 +9052,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736718/128/Je Sohni Hundi Ft. Gurlej Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cRXYFwBjs6M",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 16
         },
@@ -9082,9 +9082,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736744/128/Times Up.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=m1XOrG4ihNA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 17
         },
@@ -9112,9 +9112,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736750/128/Sparrow.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=m9ujKVvUfls",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 18
         },
@@ -9142,9 +9142,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736745/128/3rd Eye.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=mpFZuWwTMkg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 19
         },
@@ -9172,9 +9172,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736678/128/Jaiye Sajana - Recreated.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=11M7U4DvMoc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 20
         },
@@ -9202,9 +9202,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736740/128/Alone Ft. Kiran Bajwa.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=QLLebHU2E7c",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 21
         },
@@ -9232,9 +9232,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736715/128/Risk.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=n5JvAt_Qx4U",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 22
         },
@@ -9262,9 +9262,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736734/128/Gundeya Da Raja.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=9A2B-whPOiw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 23
         },
@@ -9292,9 +9292,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736542/128/Eyes on Me.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=lJZ8wWCnwow",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 24
         },
@@ -9322,9 +9322,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736698/128/911.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=L8wVfOOuMWo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 25
         },
@@ -9352,9 +9352,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736688/128/Mashhoor.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=rbsvPQ14T5g",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 26
         },
@@ -9382,9 +9382,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736716/128/BLISS.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=GeusKht8ULU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 27
         },
@@ -9412,9 +9412,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736722/128/Affection.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=6IPsJmfqPrg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 28
         },
@@ -9442,9 +9442,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736633/128/No Care.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=NZ0F1_m7cyI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 29
         },
@@ -9472,9 +9472,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736742/128/KIM JONG UN.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=0IEjbp-YycA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 30
         },
@@ -9502,9 +9502,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736737/128/ISHQ.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=nIC4hWtGi9A",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 31
         },
@@ -9532,9 +9532,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736724/128/Bageecha.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=YSBrGg4eEn4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 32
         },
@@ -9562,9 +9562,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736478/128/Mirzapur.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Oy6LzTNJy3g",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 33
         },
@@ -9592,9 +9592,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736665/128/Fire Ne Ft. Azaad 4L.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=aIGGkj2cTcE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 34
         },
@@ -9622,9 +9622,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736706/128/Waari Jaavan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VZw9bn4GjWc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 35
         },
@@ -9652,9 +9652,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736467/128/2 Number Ft. Jasmeen Akhtar.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=hbHTVJMbnrA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 36
         },
@@ -9682,9 +9682,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736743/128/About Me.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=rgjLFSpuJxc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 37
         },
@@ -9712,9 +9712,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736736/128/Sheeshe Down Ft. Deepak Dhillon.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=4XqHijRixf0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 38
         },
@@ -9742,9 +9742,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736726/128/Remember 2.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cGkdsQNjqW4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 39
         },
@@ -9772,9 +9772,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736714/128/Naslaan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-50eMQVOkHQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 40
         },
@@ -9802,9 +9802,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736677/128/Ishq Khumari.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cCY_hiBYM6I",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 41
         },
@@ -9832,9 +9832,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736572/128/Kalla Kalla Taara.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=4t3CO6zGtA0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 42
         },
@@ -9862,9 +9862,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736420/128/Udeekan Vich.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=uzQtfYxi6Ps",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 43
         },
@@ -9892,9 +9892,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736731/128/Torr.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-SL4N-kunvI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 44
         },
@@ -9922,9 +9922,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736249/128/Ainakaan.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=rugB08duIRA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 45
         },
@@ -9952,9 +9952,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736567/128/Top Fella.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=V1aGtu68hC4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 46
         },
@@ -9982,9 +9982,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736471/128/Creamland.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=ika2e5KaLdk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 47
         },
@@ -10012,9 +10012,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736733/128/Jawani Flex.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=0p6ympN11Zg",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 48
         },
@@ -10042,9 +10042,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736725/128/Carry On Jatta 4 - Title Track.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=chXLsl83byA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 49
         },
@@ -10072,9 +10072,9 @@
             "zip128": "https://hd.djjohal.com/download/zip/736693/128/Lost In You.zip"
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=yjNU9XUIFNY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_singles",
           "rank": 50
         }
@@ -10110,9 +10110,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=fHE2rqtF_n8",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 1
         },
@@ -10140,9 +10140,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=i0RJTOFwcgk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 2
         },
@@ -10170,9 +10170,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=SBGHcapv8KE",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 3
         },
@@ -10200,9 +10200,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=ECOWvyOVx80",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 4
         },
@@ -10230,9 +10230,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=43CmO5HMUFs",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 5
         },
@@ -10260,9 +10260,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=WBYD8BjHO4s",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 6
         },
@@ -10290,9 +10290,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=rw7PqrBzn90",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 7
         },
@@ -10320,9 +10320,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Pe3O1_qocMw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 8
         },
@@ -10350,9 +10350,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=5kALw9amfkA",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 9
         },
@@ -10380,9 +10380,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=w1HifS-RdY4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 10
         },
@@ -10410,9 +10410,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=zk0lZ2Tow0Y",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 11
         },
@@ -10440,9 +10440,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=SJQfPMkH8OY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 12
         },
@@ -10470,9 +10470,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=tE6JdwtCZ2o",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 13
         },
@@ -10500,9 +10500,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=EoldHogD0cM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 14
         },
@@ -10530,9 +10530,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=5HBGd0wITFM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 15
         },
@@ -10560,9 +10560,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=PYPmtvdFxho",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 16
         },
@@ -10590,9 +10590,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=SJvO8F5n9aM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 17
         },
@@ -10620,9 +10620,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=4_E59-Qynuo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 18
         },
@@ -10650,9 +10650,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=_Hf9R0R_M00",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 19
         },
@@ -10680,9 +10680,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=t29YJQu6ju0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 20
         },
@@ -10710,9 +10710,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=2NFpQ0FYePU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 21
         },
@@ -10740,9 +10740,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=tMP5hjx10nU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 22
         },
@@ -10770,9 +10770,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=jD5eZgne4EQ",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 23
         },
@@ -10800,9 +10800,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=cVG5dBWhvTw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 24
         },
@@ -10830,9 +10830,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=_S050IJr3aY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 25
         },
@@ -10860,9 +10860,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=V_-0eeBS1gI",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 26
         },
@@ -10890,9 +10890,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=9R9ZrNzZLaU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 27
         },
@@ -10920,9 +10920,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=ABCMUuFtiNo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 28
         },
@@ -10950,9 +10950,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=eKcaVLpPfZ0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 29
         },
@@ -10980,9 +10980,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VnOcnKauzXM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 30
         },
@@ -11010,9 +11010,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=q7tOaDJfoiY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 31
         },
@@ -11040,9 +11040,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=-61sKs1ns_U",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 32
         },
@@ -11070,9 +11070,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Nb0e5FO6WXY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 33
         },
@@ -11100,9 +11100,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=6n3nvqhNGVo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 34
         },
@@ -11130,9 +11130,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Do1iaSVrcDk",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 35
         },
@@ -11160,9 +11160,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=p3FQKtpxl0k",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 36
         },
@@ -11190,9 +11190,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=QvLs8Vb3h-0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 37
         },
@@ -11220,9 +11220,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=Cx4r0FI2PoM",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 38
         },
@@ -11250,9 +11250,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=4TsqYcPuajw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 39
         },
@@ -11280,9 +11280,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=pFGDdDp-lMs",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 40
         },
@@ -11310,9 +11310,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=CpB9fOBnA8w",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 41
         },
@@ -11340,9 +11340,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=DFNJ52C2Lt0",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 42
         },
@@ -11370,9 +11370,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=VOnRs2TZttY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 43
         },
@@ -11400,9 +11400,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=WwGHm9L2t9o",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 44
         },
@@ -11430,9 +11430,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=vyX5KSz9lsU",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 45
         },
@@ -11460,9 +11460,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=qhn3N0nk5YY",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 46
         },
@@ -11490,9 +11490,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=bjBsxht7iC4",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 47
         },
@@ -11520,9 +11520,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=o-iWYlgdUHw",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 48
         },
@@ -11550,9 +11550,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=ZeQTHE2tAXc",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 49
         },
@@ -11580,9 +11580,9 @@
             "zip128": ""
           },
           "album_tracks": [],
-          "youtube_url": "https://www.youtube.com/watch?v=T10tfEHLJLo",
+          "youtube_url": "",
           "first_seen_at": "2026-05-25T00:10:55+00:00",
-          "last_seen_at": "2026-05-25T04:34:42+00:00",
+          "last_seen_at": "2026-05-25T00:10:55+00:00",
           "section_id": "top_punjabi",
           "rank": 50
         }
