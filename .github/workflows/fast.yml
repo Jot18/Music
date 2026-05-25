@@ -82,17 +82,60 @@ jobs:
 
       - name: Commit updated data
         run: |
+          set -e
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Pull any commits the deep scraper may have pushed since we started.
-          git pull --rebase --autostash || true
+
+          # Sanity-check the JSON we wrote before considering committing.
+          # If a previous run left conflict markers in the working tree
+          # (or the scraper itself wrote malformed JSON), bail loudly
+          # rather than commit something the site will fail to load.
+          for f in data/songs.json data/search.json; do
+            if grep -q '^<<<<<<<' "$f" 2>/dev/null; then
+              echo "::error::Conflict markers found in $f — aborting commit"
+              exit 1
+            fi
+            python -c "import json; json.load(open('$f'))" || {
+              echo "::error::Invalid JSON in $f — aborting commit"
+              exit 1
+            }
+          done
+
           git add data/
           if git diff --cached --quiet; then
             echo "No changes to commit."
-          else
-            git commit -m "data (fast): $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push
+            exit 0
           fi
+          git commit -m "data (fast): $(date -u +'%Y-%m-%d %H:%M UTC')"
+
+          # Retry push up to 3 times. Between attempts, rebase onto the
+          # latest main — covers the case where the deep scraper (or a
+          # manual push) committed in the gap between our `git fetch`
+          # at job start and our `git push` now.
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "Push succeeded on attempt $attempt"
+              exit 0
+            fi
+            echo "Push failed on attempt $attempt, rebasing and retrying..."
+            git fetch origin main
+            # Re-validate after rebase in case the rebase itself
+            # introduces conflict markers (it shouldn't with atomic
+            # writes, but defense in depth).
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Rebase conflict — bailing without push"
+              exit 1
+            fi
+            for f in data/songs.json data/search.json; do
+              if grep -q '^<<<<<<<' "$f" 2>/dev/null; then
+                echo "::error::Post-rebase conflict markers in $f — aborting"
+                exit 1
+              fi
+            done
+          done
+          echo "::error::Push failed after 3 attempts"
+          exit 1
 
   deploy:
     name: Deploy site to GitHub Pages

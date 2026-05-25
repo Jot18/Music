@@ -129,6 +129,43 @@ DB_PATH   = DATA_DIR / "library.db"
 
 
 # ===========================================================================
+# Atomic file writes
+# ===========================================================================
+#
+# Why this matters: an earlier deploy hit a race where a scheduled scraper
+# was rewriting songs.json at the same instant a manual push landed, and
+# Git merged both halves of the file together — producing 602 conflict
+# markers inside what should've been valid JSON. The deployed site loaded
+# the file, JSON.parse threw "Expected property name or '}' in JSON at
+# position 2", and the whole UI broke.
+#
+# Atomic writes don't prevent merge collisions on their own — that's a Git
+# concern — but they DO guarantee that any file the disk surfaces is
+# either fully written or unchanged. No half-written intermediate state
+# can be picked up by git add, a concurrent reader, or a sync tool.
+
+def atomic_write_text(path: Path, content: str, encoding: str = "utf-8") -> None:
+    """Write content to path so readers never see a partial file.
+
+    Writes to a sibling temp file first, fsyncs it, then renames into
+    place. os.replace() is atomic on POSIX and Windows. Any crash or
+    kill between open() and rename() leaves the original file intact.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with open(tmp, "w", encoding=encoding) as f:
+        f.write(content)
+        f.flush()
+        try:
+            os.fsync(f.fileno())
+        except OSError:
+            # fsync isn't available on every filesystem (e.g. some
+            # network mounts), but the rename is still atomic.
+            pass
+    os.replace(tmp, path)
+
+
+# ===========================================================================
 # Schema
 # ===========================================================================
 
@@ -1212,28 +1249,34 @@ def export_homepage(conn, now_iso: str):
         },
         "sections": sections_out,
     }
-    (DATA_DIR / "songs.json").write_text(
-        json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8"
+    atomic_write_text(
+        DATA_DIR / "songs.json",
+        json.dumps(output, ensure_ascii=False, indent=2),
     )
 
 
 def export_search_index(conn, now_iso: str):
     rows = conn.execute(
-        "SELECT kind, id, title, artist, music, label, released FROM items "
+        "SELECT kind, id, title, artist, music, label, released, plays FROM items "
         "WHERE title != '' ORDER BY first_seen_at DESC"
     ).fetchall()
-    items = [
-        {
+    items = []
+    for r in rows:
+        entry = {
             "k": r["kind"][0], "i": r["id"],
             "t": r["title"] or "", "a": r["artist"] or "",
             "m": r["music"] or "", "l": r["label"] or "",
             "r": r["released"] or "",
         }
-        for r in rows
-    ]
-    (DATA_DIR / "search.json").write_text(
+        # Only include plays when populated — saves bytes for the
+        # ~70% of rows that haven't been detail-fetched yet.
+        if r["plays"]:
+            entry["p"] = r["plays"]
+        items.append(entry)
+    atomic_write_text(
+        DATA_DIR / "search.json",
         json.dumps({"generated_at": now_iso, "count": len(items), "items": items},
-                   ensure_ascii=False), encoding="utf-8"
+                   ensure_ascii=False),
     )
     print(f"[export] search.json: {len(items)} items")
 
@@ -1253,7 +1296,7 @@ def export_item_files(conn):
             except Exception:
                 pass
         d = row_to_item_dict(r, slim=False)
-        path.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+        atomic_write_text(path, json.dumps(d, ensure_ascii=False))
         written += 1
     print(f"[export] item files: {written} written, {len(rows)} total")
 

@@ -130,18 +130,24 @@ const STATE = {
   view: "home",
   // Lazy index built from search.json the first time the Artists view opens.
   artistIndex: null,
-  // Per-section page number on the home view (1-indexed). Pagination uses
-  // the search index when total > the songs.json snapshot, so users can
-  // page through the full library straight from the homepage.
+  // Per-section page number on the home view (1-indexed).
   pages: { new_singles: 1, new_albums: 1, top_singles: 1, top_punjabi: 1 },
+  // Shuffle: when true, playNext picks a random unplayed track from the
+  // current playlist instead of i+1. Persisted to localStorage so it
+  // survives reloads.
+  shuffle: localStorage.getItem("sa_shuffle_v1") === "1",
+  // Shuffle history — indices we've already visited in the current
+  // shuffle cycle, used to avoid immediately repeating the last few songs.
+  shuffleHistory: [],
+  // Items currently visible in the active view (artist page, browse view,
+  // search results, etc.). When the user plays a song from this list,
+  // we rebuild the playlist from these items so auto-advance follows
+  // the same context.
+  viewItems: null,
 };
 
-// How many items per page on the homepage sections. Top charts stay at
-// the fixed length the scraper produces (50) so they don't paginate; the
-// new_* sections grow to 50/page and can advance backward/forward
-// through the full library.
+// How many items per page on the homepage sections.
 const PAGE_SIZE_HOME = 50;
-// Infinite scroll batch when opening a dedicated browse view from a tab.
 const BROWSE_BATCH = 60;
 
 function $(sel, root = document) { return root.querySelector(sel); }
@@ -488,6 +494,7 @@ function renderAll(data) {
   const app = $("#app");
   app.innerHTML = "";
 
+  // ----- Last updated chips (desktop sidebar + mobile topbar)
   if (data.generated_at) {
     const d = new Date(data.generated_at);
     if (!isNaN(d.getTime())) {
@@ -500,6 +507,51 @@ function renderAll(data) {
       if (dEl) dEl.textContent = desktopText;
       if (mEl) mEl.textContent = mobileText;
     }
+  }
+
+  // ----- "Library updated" banner: compares the current snapshot's
+  // total item count against whatever this device saw last time, and
+  // surfaces the delta. One tap dismisses the banner and records the
+  // new high-water mark.
+  const curTotal = (data.stats?.total_singles ?? 0) + (data.stats?.total_albums ?? 0);
+  const curSingles = data.stats?.total_singles ?? 0;
+  const curAlbums  = data.stats?.total_albums  ?? 0;
+  const lastSeenRaw = localStorage.getItem("sa_last_seen_v1");
+  let lastSeen = null;
+  try { lastSeen = lastSeenRaw ? JSON.parse(lastSeenRaw) : null; } catch { lastSeen = null; }
+  if (lastSeen && typeof lastSeen.total === "number" && curTotal > lastSeen.total) {
+    const newSingles = Math.max(0, curSingles - (lastSeen.singles ?? 0));
+    const newAlbums  = Math.max(0, curAlbums  - (lastSeen.albums  ?? 0));
+    const parts = [];
+    if (newSingles) parts.push(`${newSingles} new single${newSingles === 1 ? "" : "s"}`);
+    if (newAlbums)  parts.push(`${newAlbums} new album${newAlbums === 1 ? "" : "s"}`);
+    if (parts.length) {
+      const banner = el("div", { class: "lib-updated-banner", role: "status" });
+      banner.append(
+        el("span", { class: "lib-updated-banner__icon", html: `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2v6l4-4-4-4zm0 14a4 4 0 1 1 4-4 4 4 0 0 1-4 4zm0-10a6 6 0 1 0 6 6h-2a4 4 0 1 1-4-4z"/></svg>` }),
+        el("span", { class: "lib-updated-banner__text" }, `${parts.join(" · ")} since last visit`),
+        el("button", {
+          class: "lib-updated-banner__close",
+          "aria-label": "Dismiss",
+          type: "button",
+          onclick: () => {
+            banner.remove();
+            localStorage.setItem("sa_last_seen_v1", JSON.stringify({
+              total: curTotal, singles: curSingles, albums: curAlbums,
+              at: data.generated_at || new Date().toISOString(),
+            }));
+          },
+        }, "×"),
+      );
+      app.append(banner);
+    }
+  }
+  // First-ever visit: stash the current count so future visits can diff.
+  if (!lastSeen) {
+    localStorage.setItem("sa_last_seen_v1", JSON.stringify({
+      total: curTotal, singles: curSingles, albums: curAlbums,
+      at: data.generated_at || new Date().toISOString(),
+    }));
   }
 
   STATE.sections = data.sections || [];
@@ -593,28 +645,32 @@ function fillSheet(item) {
     return `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  // Compute a sensible playtime for the album:
-  //   - If djjohal lists per-track playtimes that VARY across children,
-  //     they're genuine track lengths — sum them for the album total.
-  //   - If all children have the SAME value, that value IS the album
-  //     total (djjohal repeats it on every track page) — use as-is.
-  //   - Falls back to whatever the album row itself stores.
+  // Compute the album's total playtime.
+  //
+  // djjohal's per-track detail page lists a "Playtime" field. Empirically,
+  // even when this value is identical across all tracks in an album, it
+  // represents the PER-TRACK length, not the album total (e.g. a 13-track
+  // "full album" with 02:45 on every child would otherwise be under 3
+  // minutes total, which is nonsense). So we always sum the populated
+  // child playtimes. If the album row itself stores a playtime, that
+  // wins — it's the most authoritative value.
   const computeAlbumPlaytime = () => {
-    if (!Array.isArray(item.album_tracks) || !item.album_tracks.length) return item.playtime || "";
-    const childPts = [];
+    if (item.playtime) return item.playtime;
+    if (!Array.isArray(item.album_tracks) || !item.album_tracks.length) return "";
+    let totalSec = 0;
+    let counted = 0;
     for (const t of item.album_tracks) {
       const cached = ITEM_CACHE.get(`single:${t.id}`);
-      if (cached && cached.playtime) childPts.push(cached.playtime);
+      if (cached && cached.playtime) {
+        const sec = parsePlaytimeSec(cached.playtime);
+        if (sec > 0) {
+          totalSec += sec;
+          counted++;
+        }
+      }
     }
-    if (!childPts.length) return item.playtime || "";
-    const unique = [...new Set(childPts)];
-    if (unique.length === 1) {
-      // All identical: djjohal's "album total" repeated. Use the value.
-      return unique[0];
-    }
-    // Varied: sum the per-track lengths.
-    const total = childPts.reduce((acc, s) => acc + parsePlaytimeSec(s), 0);
-    return formatPlaytimeSec(total);
+    if (!counted) return "";
+    return formatPlaytimeSec(totalSec);
   };
 
   let displayPlaytime = isAlbum ? computeAlbumPlaytime() : (item.playtime || "");
@@ -1204,8 +1260,31 @@ function playPrev() {
 
 function playNext() {
   if (STATE.playlist.length === 0) return;
-  let i = STATE.currentIndex + 1;
-  if (i >= STATE.playlist.length) i = 0;
+  let i;
+  if (STATE.shuffle && STATE.playlist.length > 1) {
+    // Pick a random index that isn't the current one and ideally isn't
+    // in the recent shuffle history (last 30% of playlist or last 8
+    // tracks, whichever is smaller).
+    const avoid = new Set(STATE.shuffleHistory);
+    avoid.add(STATE.currentIndex);
+    const candidates = [];
+    for (let k = 0; k < STATE.playlist.length; k++) {
+      if (!avoid.has(k)) candidates.push(k);
+    }
+    // If history has consumed all candidates, reset.
+    if (!candidates.length) {
+      STATE.shuffleHistory = [];
+      i = (STATE.currentIndex + 1) % STATE.playlist.length;
+    } else {
+      i = candidates[Math.floor(Math.random() * candidates.length)];
+    }
+    const histCap = Math.min(8, Math.max(1, Math.floor(STATE.playlist.length * 0.3)));
+    STATE.shuffleHistory.push(i);
+    if (STATE.shuffleHistory.length > histCap) STATE.shuffleHistory.shift();
+  } else {
+    i = STATE.currentIndex + 1;
+    if (i >= STATE.playlist.length) i = 0;
+  }
   const candidate = STATE.playlist[i];
   if (candidate && candidate.mp3 && (candidate.mp3.stream || candidate.mp3.kbps128 || candidate.mp3.kbps320)) {
     playItem(candidate);
@@ -1215,6 +1294,34 @@ function playNext() {
     const full = await ensureFullItem(candidate);
     if (full) playItem(full);
   })();
+}
+
+// When the user navigates to a context that has a different playable
+// list (artist page, search results, browse view), call this to make
+// auto-advance follow THAT list instead of the homepage list.
+//
+// Items can be slim (from search.json) or full — both shapes are fine.
+// We just need `kind`, `id`, and either an mp3 URL or some way to
+// fetch one when this track plays.
+function setPlaylistContext(items, albumCtx = null) {
+  if (!Array.isArray(items)) return;
+  STATE.playlist = items.filter(it => it && it.kind === "single");
+  STATE.currentIndex = STATE.currentItem
+    ? STATE.playlist.findIndex(p => p.id === STATE.currentItem.id && p.kind === STATE.currentItem.kind)
+    : -1;
+  STATE.albumContext = albumCtx;
+  STATE.shuffleHistory = [];
+}
+
+function setShuffle(on) {
+  STATE.shuffle = !!on;
+  STATE.shuffleHistory = [];
+  localStorage.setItem("sa_shuffle_v1", on ? "1" : "0");
+  // Reflect in UI
+  for (const btn of $$(".shuffle-toggle")) {
+    btn.classList.toggle("is-on", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
 }
 
 function setPlayingUI(isPlaying) {
@@ -1290,6 +1397,12 @@ function openCurrentContext() {
 $("#npPlay").addEventListener("click", togglePlay);
 $("#npPrev").addEventListener("click", playPrev);
 $("#npNext").addEventListener("click", playNext);
+const _npShuffleBtn = $("#npShuffle");
+if (_npShuffleBtn) {
+  _npShuffleBtn.addEventListener("click", () => setShuffle(!STATE.shuffle));
+  // Initialize button state from persisted localStorage value.
+  setShuffle(STATE.shuffle);
+}
 $("#npSource").addEventListener("click", () => {
   closeNowPlaying();
   openCurrentContext();
@@ -1624,74 +1737,146 @@ async function renderArtistView(name) {
   // Use the canonical display name we picked when building the index.
   $(".artist__name", header).textContent = entry.displayName;
 
-  const all = sortNewestFirst(entry.items);
-  const singles = all.filter(s => s.k === "s").map(expandSlim);
-  const albums  = all.filter(s => s.k === "a").map(expandSlim);
+  // Keep the raw slim items here; sort selection re-derives the
+  // singles/albums arrays from this list.
+  const rawItems = entry.items.slice();
 
-  $("#artistCount").textContent =
-    `${singles.length} song${singles.length === 1 ? "" : "s"}, ` +
-    `${albums.length} album${albums.length === 1 ? "" : "s"} · newest first`;
+  // ----- Sort dropdown
+  const sortOptions = [
+    { value: "newest",  label: "Newest first" },
+    { value: "oldest",  label: "Oldest first" },
+    { value: "title",   label: "Title A → Z"   },
+    { value: "plays",   label: "Most played"   },  // best-effort
+  ];
+  // Persist user's last sort choice for the artist page.
+  let currentSort = localStorage.getItem("sa_artist_sort_v1") || "newest";
+  if (!sortOptions.find(s => s.value === currentSort)) currentSort = "newest";
+
+  const sortBar = el("div", { class: "artist__sortbar" });
+  const sortLabel = el("label", { class: "artist__sortlabel", for: "artistSortSel" }, "Sort:");
+  const sortSel = el("select", { class: "artist__sortsel", id: "artistSortSel" });
+  for (const opt of sortOptions) {
+    const o = el("option", { value: opt.value }, opt.label);
+    if (opt.value === currentSort) o.setAttribute("selected", "");
+    sortSel.append(o);
+  }
+  sortBar.append(sortLabel, sortSel);
+  header.append(sortBar);
+
+  const sortItems = (items, mode) => {
+    const arr = items.slice();
+    if (mode === "oldest") {
+      arr.sort((a, b) => parseInt(a.i, 10) - parseInt(b.i, 10));
+    } else if (mode === "title") {
+      arr.sort((a, b) => (a.t || "").localeCompare(b.t || ""));
+    } else if (mode === "plays") {
+      // search.json has no plays field today; fall back to ITEM_CACHE
+      // if details have been fetched. Items without a play count sort
+      // to the end. Once a future scrape adds plays to search.json,
+      // this will rank by global popularity for free.
+      const playCount = (s) => {
+        const direct = parseInt(String(s.p || "").replace(/,/g, ""), 10);
+        if (!isNaN(direct)) return direct;
+        const cached = ITEM_CACHE.get(`${s.k === "a" ? "album" : "single"}:${s.i}`);
+        const p = cached ? parseInt(String(cached.plays || "").replace(/,/g, ""), 10) : NaN;
+        return isNaN(p) ? -1 : p;
+      };
+      arr.sort((a, b) => playCount(b) - playCount(a));
+    } else {
+      // newest
+      arr.sort((a, b) => parseInt(b.i, 10) - parseInt(a.i, 10));
+    }
+    return arr;
+  };
 
   // Hydrate from the homepage / per-item caches if available, so cards
   // show real covers without an extra fetch.
   const hydrate = (it) => ITEM_CACHE.get(`${it.kind}:${it.id}`) || it;
 
-  if (singles.length) {
-    singlesHost.hidden = false;
-    singlesHost.append(
-      el("div", { class: "section__head" },
-        el("h2", { class: "section__title", html: `Songs by <em>${entry.displayName}</em>` }),
-        el("span", { class: "section__count" }, `${singles.length} track${singles.length === 1 ? "" : "s"}`),
-      ),
-    );
-    const grid = el("div", { class: "grid" });
-    singles.forEach((s, i) => grid.append(buildCard(hydrate(s), false, i)));
-    singlesHost.append(grid);
-  }
-  if (albums.length) {
-    albumsHost.hidden = false;
-    albumsHost.append(
-      el("div", { class: "section__head" },
-        el("h2", { class: "section__title", html: `Albums &amp; EPs by <em>${entry.displayName}</em>` }),
-        el("span", { class: "section__count" }, `${albums.length} release${albums.length === 1 ? "" : "s"}`),
-      ),
-    );
-    const grid = el("div", { class: "grid" });
-    albums.forEach((a, i) => grid.append(buildCard(hydrate(a), false, i)));
-    albumsHost.append(grid);
-  }
+  const renderGrids = () => {
+    const all = sortItems(rawItems, currentSort);
+    const singles = all.filter(s => s.k === "s").map(expandSlim);
+    const albums  = all.filter(s => s.k === "a").map(expandSlim);
 
-  // Lazy-hydrate covers for items not already in the homepage cache.
-  // Uses IntersectionObserver so we only fetch detail for cards as they
-  // come into view — covers all the artist's history without flooding
-  // the network on initial load.
-  const allItems = [...singles, ...albums];
-  const cardsByKey = new Map();
-  for (const it of allItems) {
-    const k = `${it.kind}:${it.id}`;
-    if (ITEM_CACHE.has(k) && ITEM_CACHE.get(k).cover) continue;
-    const sel = `[data-item="${k}"]`;
-    const cardEl = document.querySelector(sel);
-    if (cardEl) cardsByKey.set(k, { item: it, el: cardEl, loaded: false });
-  }
-  if (cardsByKey.size) {
-    const coverIo = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (!e.isIntersecting) continue;
-        const k = e.target.getAttribute("data-item");
-        const entry = cardsByKey.get(k);
-        if (!entry || entry.loaded) continue;
-        entry.loaded = true;
-        coverIo.unobserve(e.target);
-        loadItemDetail(entry.item.kind, entry.item.id).then((full) => {
-          if (!full || !full.cover) return;
-          const img = e.target.querySelector("img");
-          if (img) img.src = safeUrl(full.cover);
-        }).catch(() => {});
-      }
-    }, { rootMargin: "300px 0px" });
-    for (const { el } of cardsByKey.values()) coverIo.observe(el);
-  }
+    // Update count line.
+    const sortLabelText = sortOptions.find(s => s.value === currentSort)?.label.toLowerCase() ?? "newest first";
+    $("#artistCount").textContent =
+      `${singles.length} song${singles.length === 1 ? "" : "s"}, ` +
+      `${albums.length} album${albums.length === 1 ? "" : "s"} · ${sortLabelText}`;
+
+    // Replace grids in place.
+    singlesHost.innerHTML = "";
+    albumsHost.innerHTML  = "";
+    if (singles.length) {
+      singlesHost.hidden = false;
+      singlesHost.append(
+        el("div", { class: "section__head" },
+          el("h2", { class: "section__title", html: `Songs by <em>${entry.displayName}</em>` }),
+          el("span", { class: "section__count" }, `${singles.length} track${singles.length === 1 ? "" : "s"}`),
+        ),
+      );
+      const grid = el("div", { class: "grid" });
+      singles.forEach((s, i) => grid.append(buildCard(hydrate(s), false, i)));
+      singlesHost.append(grid);
+    } else {
+      singlesHost.hidden = true;
+    }
+    if (albums.length) {
+      albumsHost.hidden = false;
+      albumsHost.append(
+        el("div", { class: "section__head" },
+          el("h2", { class: "section__title", html: `Albums &amp; EPs by <em>${entry.displayName}</em>` }),
+          el("span", { class: "section__count" }, `${albums.length} release${albums.length === 1 ? "" : "s"}`),
+        ),
+      );
+      const grid = el("div", { class: "grid" });
+      albums.forEach((a, i) => grid.append(buildCard(hydrate(a), false, i)));
+      albumsHost.append(grid);
+    } else {
+      albumsHost.hidden = true;
+    }
+
+    // Stash this artist's singles as the playlist context so
+    // continuous play / next / shuffle stay within this artist.
+    setPlaylistContext(singles.map(hydrate));
+
+    // Lazy-hydrate covers for items not already in the cache.
+    const allItems = [...singles, ...albums];
+    const cardsByKey = new Map();
+    for (const it of allItems) {
+      const k = `${it.kind}:${it.id}`;
+      if (ITEM_CACHE.has(k) && ITEM_CACHE.get(k).cover) continue;
+      const sel = `[data-item="${k}"]`;
+      const cardEl = document.querySelector(sel);
+      if (cardEl) cardsByKey.set(k, { item: it, el: cardEl, loaded: false });
+    }
+    if (cardsByKey.size) {
+      const coverIo = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const k = e.target.getAttribute("data-item");
+          const entry2 = cardsByKey.get(k);
+          if (!entry2 || entry2.loaded) continue;
+          entry2.loaded = true;
+          coverIo.unobserve(e.target);
+          loadItemDetail(entry2.item.kind, entry2.item.id).then((full) => {
+            if (!full || !full.cover) return;
+            const img = e.target.querySelector("img");
+            if (img) img.src = safeUrl(full.cover);
+          }).catch(() => {});
+        }
+      }, { rootMargin: "300px 0px" });
+      for (const { el } of cardsByKey.values()) coverIo.observe(el);
+    }
+  };
+
+  sortSel.addEventListener("change", () => {
+    currentSort = sortSel.value;
+    localStorage.setItem("sa_artist_sort_v1", currentSort);
+    renderGrids();
+  });
+
+  renderGrids();
 }
 
 async function renderArtistsList() {
@@ -1847,6 +2032,18 @@ async function renderBrowseView(kind) {
   $("#browseCount").textContent =
     `${all.length.toLocaleString()} ${isAlbum ? "releases" : "tracks"} · scroll to load more`;
 
+  // Stash the full browse list as the playlist context. Even though
+  // cards lazy-load in batches, the user expects continuous play /
+  // shuffle to cycle through every item in the view, not just the
+  // first 60. Singles only — albums need a track pick to play.
+  if (!isAlbum) {
+    const playable = all.map(s => {
+      const cached = ITEM_CACHE.get(`single:${s.i}`);
+      return cached || expandSlim(s);
+    });
+    setPlaylistContext(playable);
+  }
+
   let cursor = 0;
   const loadMore = () => {
     if (STATE.view !== `browse:${kind}`) return;  // navigated away
@@ -1955,12 +2152,20 @@ async function doSearch(q) {
     grid.append(el("div", { class: "empty" }, "No matches in the library."));
   } else {
     for (const s of matches) grid.append(buildCard(expandSlim(s), false, null));
+    // Stash matched singles as the playlist context so playing one
+    // continues through the rest of the search results.
+    const matchedSingles = matches
+      .filter(s => s.k === "s")
+      .map(s => ITEM_CACHE.get(`single:${s.i}`) || expandSlim(s));
+    setPlaylistContext(matchedSingles);
   }
   host.append(grid);
   host.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-const doSearchDebounced = debounce(doSearch, 180);
+// Search-as-you-type: 50ms is short enough to feel instant while still
+// coalescing rapid keystrokes (typing "punjabi" doesn't fire 7 searches).
+const doSearchDebounced = debounce(doSearch, 50);
 
 searchInput.addEventListener("focus", ensureSearchIndex);
 searchInput.addEventListener("input", (e) => doSearchDebounced(e.target.value));

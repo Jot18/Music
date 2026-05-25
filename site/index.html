@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=7.16" />
+<link rel="stylesheet" href="styles.css?v=7.19" />
 </head>
 <body>
 
@@ -249,6 +249,9 @@
     </div>
   </div>
   <div class="np__controls">
+    <button class="np__btn np__btn--small shuffle-toggle" id="npShuffle" type="button" aria-label="Toggle shuffle" aria-pressed="false">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+    </button>
     <button class="np__btn" id="npPrev" aria-label="Previous">
       <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zM20 6v12L9 12z"/></svg>
     </button>
@@ -259,6 +262,7 @@
     <button class="np__btn" id="npNext" aria-label="Next">
       <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg>
     </button>
+    <span class="np__btn np__btn--small np__btn--spacer" aria-hidden="true"></span>
   </div>
   <a class="np__yt" id="npYtBtn" target="_blank" rel="noopener" href="#">
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M21.58 7.19a2.51 2.51 0 0 0-1.77-1.77C18.25 5 12 5 12 5s-6.25 0-7.81.42A2.51 2.51 0 0 0 2.42 7.19 26.06 26.06 0 0 0 2 12a26.06 26.06 0 0 0 .42 4.81 2.51 2.51 0 0 0 1.77 1.77C5.75 19 12 19 12 19s6.25 0 7.81-.42a2.51 2.51 0 0 0 1.77-1.77A26.06 26.06 0 0 0 22 12a26.06 26.06 0 0 0-.42-4.81zM10 15V9l5.2 3z"/></svg>
@@ -266,6 +270,6 @@
   </a>
 </div>
 
-<script src="app.js?v=7.16"></script>
+<script src="app.js?v=7.19"></script>
 </body>
 </html>
