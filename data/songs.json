@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-26T02:03:50+00:00",
+  "generated_at": "2026-05-26T06:08:53+00:00",
   "stats": {
     "total_singles": 30602,
     "total_albums": 7725,
-    "mode": "fast",
+    "mode": "deep",
     "crawl": {
       "new_singles": {
         "next_page": 1664,
